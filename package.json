@@ -28,7 +28,7 @@
   "homepage": "https://github.com/meszaros-lajos-gyorgy/arx-map-blob-absorb#readme",
   "dependencies": {
     "arx-convert": "^10.1.1",
-    "arx-level-generator": "^21.0.0-alpha.24",
+    "arx-level-generator": "^21.0.0-alpha.25",
     "three": "^0.167.0"
   },
   "devDependencies": {
