@@ -1,11 +1,10 @@
-import { ArxMap, Audio, Entity, HudElements, QUADIFY, Settings, SHADING_SMOOTH, Vector3 } from 'arx-level-generator'
+import { ArxMap, HudElements, QUADIFY, Settings, SHADING_SMOOTH, Vector3 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
-import { Sound, SoundFlags } from 'arx-level-generator/scripting/classes'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
-import { Collision, Interactivity, Shadow, Speed, Variable } from 'arx-level-generator/scripting/properties'
+import { Shadow, Speed, Variable } from 'arx-level-generator/scripting/properties'
 import { applyTransformations, isBetween } from 'arx-level-generator/utils'
 import { randomBetween } from 'arx-level-generator/utils/random'
-import { MathUtils } from 'three'
+import { createNpc } from './prefabs/npc.js'
 
 const settings = new Settings()
 const map = new ArxMap()
@@ -30,80 +29,6 @@ map.polygons.addThreeJsMesh(mesh, {
   tryToQuadify: QUADIFY,
   shading: SHADING_SMOOTH,
 })
-
-// -----------------------
-
-const eatSound = new Audio({
-  filename: 'eat.wav',
-  isNative: true,
-  type: 'sfx',
-})
-const eatSoundScript = new Sound(eatSound.filename, SoundFlags.VaryPitch)
-
-async function createBlob(position: Vector3, size: { min: number; max: number }) {
-  const blob = new Entity({
-    src: 'npc/goblin_base',
-  })
-
-  blob.position = position
-  blob.orientation.y = MathUtils.degToRad(randomBetween(-90, 90))
-
-  blob.withScript()
-
-  const scale = new Variable('float', 'scale', 0, true)
-  const isConsumable = new Variable('bool', 'is_consumable', false)
-
-  blob.script?.properties.push(Collision.on, Shadow.off, Interactivity.off, scale, isConsumable)
-  blob.script
-    ?.on('initend', () => {
-      return `
-setweapon "none"
-setgroup blob
-set_event collide_npc on
-
-set ${scale.name} ^rnd_${size.max - size.min}
-inc ${scale.name} ${size.min}
-
-setscale ${scale.name}
-      `
-    })
-    .on('scale_threshold_change', () => {
-      const tmp = new Variable('float', 'tmp', 0, true)
-      return `
-if (${scale.name} < ^&param1) {
-  set ${isConsumable.name} 1
-} else {
-  set ${isConsumable.name} 0
-}
-
-set ${tmp.name} ^&param1
-mul ${tmp.name} 3
-if (${scale.name} > ${tmp.name}) {
-  ${Collision.off}
-} else {
-  ${Collision.on}
-}
-      `
-    })
-    .on('collide_npc', () => {
-      const { delay } = useDelay()
-      return `
-if (${isConsumable.name} == 1) {
-  sendevent grow player ~${scale.name}~
-  ${Collision.off}
-  ${eatSoundScript.play()}
-  objecthide self on
-  ${delay(100)} destroy self
-} else {
-  random 50 {
-    speak [goblin_ouch]
-  }
-}
-      `
-    })
-
-  return blob
-}
 
 // -----------------------
 
@@ -140,7 +65,7 @@ for (let i = 0; i < 110; i++) {
     position.z = randomBetween(-1500, 1500)
   }
 
-  const blob = await createBlob(position, { min: 15, max: 50 })
+  const blob = createNpc({ position, size: { min: 15, max: 50 } })
   map.entities.push(blob)
 }
 
@@ -151,7 +76,7 @@ for (let i = 0; i < 50; i++) {
     position.z = randomBetween(-1500, 1500)
   }
 
-  const blob = await createBlob(position, { min: 50, max: 150 })
+  const blob = createNpc({ position, size: { min: 50, max: 150 } })
   map.entities.push(blob)
 }
 
@@ -162,7 +87,7 @@ for (let i = 0; i < 30; i++) {
     position.z = randomBetween(-1500, 1500)
   }
 
-  const blob = await createBlob(position, { min: 150, max: 300 })
+  const blob = createNpc({ position, size: { min: 150, max: 300 } })
   map.entities.push(blob)
 }
 
@@ -173,7 +98,7 @@ for (let i = 0; i < 3; i++) {
     position.z = randomBetween(-1000, 1000)
   }
 
-  const blob = await createBlob(position, { min: 300, max: 1000 })
+  const blob = createNpc({ position, size: { min: 300, max: 1000 } })
   map.entities.push(blob)
 }
 
