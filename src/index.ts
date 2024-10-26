@@ -87,7 +87,24 @@ ${resize.invoke()}
   })
   .on('main', () => {
     return `
-set ${hudLine1.name} "player size: ~${size.name}~cm"
+// wholepart = (int)size
+set §wholepart ${size.name}
+
+// decimaldigit1 = (int)((size - wholepart) * 10)
+set ${tmp.name} ${size.name}
+dec ${tmp.name} §wholepart
+mul ${tmp.name} 10
+set §decimaldigit1 ${tmp.name}
+
+// decimaldigit2 = (int)(((size - wholepart) * 10 - decimaldigit1) * 10)
+set ${tmp.name} ${size.name}
+dec ${tmp.name} §wholepart
+mul ${tmp.name} 10
+dec ${tmp.name} §decimaldigit1
+mul ${tmp.name} 10
+set §decimaldigit2 ${tmp.name}
+
+set ${hudLine1.name} "player size: ~§wholepart~.~§decimaldigit1~~§decimaldigit2~cm"
 
 herosay ${hudLine1.name}
 herosay ${hudLine2.name}
