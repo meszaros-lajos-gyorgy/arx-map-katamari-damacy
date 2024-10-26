@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/meszaros-lajos-gyorgy/arx-map-blob-absorb.git"
+    "url": "git+https://github.com/meszaros-lajos-gyorgy/arx-map-katamari-damacy.git"
   },
   "keywords": [
     "arx-fatalis"
@@ -23,9 +23,9 @@
   "author": "Lajos Mészáros <m_lajos@hotmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/meszaros-lajos-gyorgy/arx-map-blob-absorb/issues"
+    "url": "https://github.com/meszaros-lajos-gyorgy/arx-map-katamari-damacy/issues"
   },
-  "homepage": "https://github.com/meszaros-lajos-gyorgy/arx-map-blob-absorb#readme",
+  "homepage": "https://github.com/meszaros-lajos-gyorgy/arx-map-katamari-damacy#readme",
   "dependencies": {
     "arx-convert": "^10.1.1",
     "arx-level-generator": "^21.0.0-alpha.27",
