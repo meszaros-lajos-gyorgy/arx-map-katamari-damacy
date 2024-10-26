@@ -1,9 +1,12 @@
-import { ArxMap, HudElements, QUADIFY, Settings, SHADING_SMOOTH, Texture, Vector3 } from 'arx-level-generator'
-import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
+import { ArxMap, Entity, HudElements, QUADIFY, Settings, SHADING_SMOOTH, Texture, Vector3 } from 'arx-level-generator'
+import { createBox, createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
+import { ScriptSubroutine } from 'arx-level-generator/scripting'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
 import { PlayerControls, Shadow, Speed, Variable } from 'arx-level-generator/scripting/properties'
+import { createLight } from 'arx-level-generator/tools'
 import { applyTransformations, isBetween } from 'arx-level-generator/utils'
-import { pickRandom, randomBetween } from 'arx-level-generator/utils/random'
+import { randomBetween } from 'arx-level-generator/utils/random'
+import { Mesh } from 'three'
 import { createNpc, createRootNpc, NpcTypes } from './prefabs/npc.js'
 
 const settings = new Settings()
@@ -15,54 +18,76 @@ map.hud.hide(HudElements.Minimap)
 
 // -----------------------
 
-const mesh = createPlaneMesh({
+const meshes: Mesh[] = []
+
+const plane = createPlaneMesh({
   size: 4000,
 })
-
-applyTransformations(mesh)
-mesh.translateX(map.config.offset.x)
-mesh.translateY(map.config.offset.y)
-mesh.translateZ(map.config.offset.z)
-applyTransformations(mesh)
-
-map.polygons.addThreeJsMesh(mesh, {
-  tryToQuadify: QUADIFY,
-  shading: SHADING_SMOOTH,
-})
+meshes.push(plane)
 
 // -----------------------
 
-const playerSize = new Variable('float', 'size', 30)
 const hudLine1 = new Variable('string', 'hud_line_1', ' ')
 const hudLine2 = new Variable('string', 'hud_line_2', ' ')
 const hudLine3 = new Variable('string', 'hud_line_3', ' ')
 const hudLine4 = new Variable('string', 'hud_line_4', ' ')
+const size = new Variable('float', 'size', 50) // real height of the model (centimeters)
+const baseHeight = new Variable('int', 'base_height', 180) // model height (centimeters)
+const scaleFactor = new Variable('float', 'scale_factor', 0, true) // value to be passed to setscale command (percentage)
+const tmp = new Variable('float', 'tmp', 0, true) // helper for calculations
 
 map.player.withScript()
-map.player.script?.properties.push(new Speed(1.5), Shadow.off, playerSize, hudLine1, hudLine2, hudLine3, hudLine4)
+
+map.player.script?.properties.push(
+  new Speed(1.5),
+  Shadow.off,
+  hudLine1,
+  hudLine2,
+  hudLine3,
+  hudLine4,
+  size,
+  baseHeight,
+  scaleFactor,
+  tmp,
+)
+
+const resize = new ScriptSubroutine(
+  'resize',
+  () => {
+    const { delay } = useDelay()
+    return `
+// scaleFactor % = (playerSize cm / playerBaseHeight cm) * 100
+set ${scaleFactor.name} ${size.name}
+div ${scaleFactor.name} ${baseHeight.name}
+mul ${scaleFactor.name} 100
+
+setscale ${scaleFactor.name}
+${delay(500)} sendevent -g consumables size_threshold_change ~${size.name}~
+`
+  },
+  'gosub',
+)
+map.player.script?.subroutines.push(resize)
 
 map.player.script
   ?.on('init', () => {
-    const { delay } = useDelay()
     return `
-setscale ${playerSize.name}
-${delay(500)} sendevent -g blob scale_threshold_change ~${playerSize.name}~
-`
+${resize.invoke()}
+    `
   })
   .on('grow', () => {
-    const tmp = new Variable('float', 'tmp', 0, true)
     return `
+// size cm += args[0] cm / 50
 set ${tmp.name} ^&param1
 div ${tmp.name} 50
-inc ${playerSize.name} ${tmp.name}
+inc ${size.name} ${tmp.name}
 
-setscale ${playerSize.name}
-sendevent -g blob scale_threshold_change ~${playerSize.name}~
+${resize.invoke()}
 `
   })
   .on('main', () => {
     return `
-set ${hudLine1.name} "player size: ~${playerSize.name}~cm"
+set ${hudLine1.name} "player size: ~${size.name}~cm"
 
 herosay ${hudLine1.name}
 herosay ${hudLine2.name}
@@ -96,7 +121,7 @@ for (let i = 0; i < 110; i++) {
     type = 'goblin_lord'
   }
 
-  const npc = createNpc({ position, size: { min: 15, max: 50 }, type })
+  const npc = createNpc({ position, sizeRange: { min: 15, max: 50 }, type })
   map.entities.push(npc)
 }
 
@@ -112,7 +137,7 @@ for (let i = 0; i < 50; i++) {
     type = 'goblin_lord'
   }
 
-  const npc = createNpc({ position, size: { min: 40, max: 150 }, type })
+  const npc = createNpc({ position, sizeRange: { min: 40, max: 150 }, type })
   map.entities.push(npc)
 }
 
@@ -128,7 +153,7 @@ for (let i = 0; i < 30; i++) {
     type = 'goblin_lord'
   }
 
-  const npc = createNpc({ position, size: { min: 100, max: 300 }, type })
+  const npc = createNpc({ position, sizeRange: { min: 100, max: 300 }, type })
   map.entities.push(npc)
 }
 
@@ -144,7 +169,7 @@ for (let i = 0; i < 3; i++) {
     type = 'goblin_lord'
   }
 
-  const npc = createNpc({ position, size: { min: 200, max: 300 }, type })
+  const npc = createNpc({ position, sizeRange: { min: 200, max: 300 }, type })
   map.entities.push(npc)
 }
 
@@ -156,11 +181,71 @@ while (isBetween(-150, 150, position.x) && isBetween(-150, 150, position.z)) {
   position.z = randomBetween(-1000, 1000)
 }
 
-const boss = createNpc({ position, size: { min: 200, max: 300 }, type: 'goblin_king' })
+const boss = createNpc({ position, sizeRange: { min: 200, max: 300 }, type: 'goblin_king' })
 boss.script?.on('consumed', () => {
   return `sendevent victory player nop`
 })
 map.entities.push(boss)
+
+// -----------------------
+
+for (let x = 0; x < 8; x++) {
+  for (let z = 0; z < 8; z++) {
+    map.lights.push(
+      createLight({
+        position: new Vector3(-2000 + 250 + x * 500, -500, -2000 + 250 + z * 500),
+        radius: 1000,
+        intensity: randomBetween(0.5, 1),
+      }),
+    )
+  }
+}
+
+// -----------------------
+
+// meshes.push(
+//   createBox({
+//     position: new Vector3(0, -50, 300),
+//     size: new Vector3(100, 100, 100),
+//     texture: Texture.uvDebugTexture,
+//   }),
+//   createBox({
+//     position: new Vector3(0, -150, 300),
+//     size: new Vector3(100, 100, 100),
+//     texture: Texture.uvDebugTexture,
+//   }),
+//   // createBox({
+//   //   position: new Vector3(0, -250, 300),
+//   //   size: new Vector3(100, 100, 100),
+//   //   texture: Texture.uvDebugTexture,
+//   // }),
+// )
+
+// const entity = new Entity({
+//   src: 'npc/goblin_base',
+//   position: new Vector3(0, 0, 250),
+// })
+// entity.withScript()
+// entity.script?.on('load', () => {
+//   return `USE_MESH "Goblin_king\\Goblin_king.teo"`
+// })
+
+// map.entities.push(entity)
+
+// -----------------------
+
+meshes.forEach((mesh) => {
+  applyTransformations(mesh)
+  mesh.translateX(map.config.offset.x)
+  mesh.translateY(map.config.offset.y)
+  mesh.translateZ(map.config.offset.z)
+  applyTransformations(mesh)
+
+  map.polygons.addThreeJsMesh(mesh, {
+    tryToQuadify: QUADIFY,
+    shading: SHADING_SMOOTH,
+  })
+})
 
 // -----------------------
 
