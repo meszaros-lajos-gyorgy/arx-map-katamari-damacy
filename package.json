@@ -1,7 +1,7 @@
 {
-  "name": "arx-map-blob-absorb",
+  "name": "arx-map-katamari-damacy",
   "version": "1.1.0",
-  "description": "An Arx Fatalis map where you control a blob that grows by consuming smaller blobs upon collision",
+  "description": "An Arx Fatalis mod where you consume things smaller than you while subsequently growing and trying to reach a given size within a given time limit",
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
