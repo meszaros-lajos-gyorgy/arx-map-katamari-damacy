@@ -143,6 +143,13 @@ if (${size.name} > ${tmp.name}) {
 } else {
   ${Collision.on}
 }
+
+// if entity's size < player's size / 5 then hide entity
+set ${tmp.name} ^&param1
+div ${tmp.name} 5
+if (${size.name} < ${tmp.name}) {
+  objecthide self on
+}
       `
     })
     .on('collide_npc', () => {

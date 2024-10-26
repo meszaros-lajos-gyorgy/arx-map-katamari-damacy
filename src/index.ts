@@ -198,7 +198,7 @@ while (isBetween(-150, 150, position.x) && isBetween(-150, 150, position.z)) {
   position.z = randomBetween(-1000, 1000)
 }
 
-const boss = createNpc({ position, sizeRange: { min: 200, max: 300 }, type: 'goblin_king' })
+const boss = createNpc({ position, sizeRange: { min: 300, max: 300 }, type: 'goblin_king' })
 boss.script?.on('consumed', () => {
   return `sendevent victory player nop`
 })
