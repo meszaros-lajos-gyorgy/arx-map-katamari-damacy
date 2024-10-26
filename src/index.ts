@@ -1,4 +1,4 @@
-import { ArxMap, HudElements, QUADIFY, Settings, SHADING_SMOOTH, Vector3 } from 'arx-level-generator'
+import { ArxMap, HudElements, QUADIFY, Settings, SHADING_SMOOTH, Texture, Vector3 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
 import { Shadow, Speed, Variable } from 'arx-level-generator/scripting/properties'
@@ -55,6 +55,16 @@ setscale ${playerSize.name}
 sendevent -g blob scale_threshold_change ~${playerSize.name}~
 `
   })
+  .on('main', () => {
+    return `
+herosay "player size: ~${playerSize.name}~cm"
+herosay " "
+herosay " "
+herosay " "
+    `
+  })
+
+map.hud.hide(HudElements.HerosayIcon)
 
 // -----------------------
 
