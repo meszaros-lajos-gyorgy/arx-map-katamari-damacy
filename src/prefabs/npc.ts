@@ -1,11 +1,12 @@
 import { Audio, Entity, Vector3 } from 'arx-level-generator'
 import { Sound, SoundFlags } from 'arx-level-generator/scripting/classes'
-import { useDelay } from 'arx-level-generator/scripting/hooks'
 import { Collision, Interactivity, Invulnerability, Shadow, Variable } from 'arx-level-generator/scripting/properties'
 import { randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils } from 'three'
 
 // -----------------
+
+export type NpcTypes = 'goblin_base' | 'goblin_lord' | 'goblin_king'
 
 const consumeSound = new Audio({
   filename: 'eat.wav',
@@ -24,38 +25,65 @@ const collisionSoundScript = {
 
 // -----------------
 
-type createNpcProps = {
-  position: Vector3
-  size: { min: number; max: number }
-}
-
-export function createNpc({ position, size }: createNpcProps) {
+export function createRootNpc() {
   const entity = new Entity({
     src: 'npc/goblin_base',
   })
 
-  entity.position = position
-  entity.orientation.y = MathUtils.degToRad(randomBetween(-90, 90))
-
   entity.withScript()
+  entity.script?.makeIntoRoot()
 
-  const scale = new Variable('float', 'scale', 0, true)
+  // ----
+
+  entity.script
+    ?.on('init', () => {
+      return `
+ SET £type "goblin_lord"
+ PHYSICAL RADIUS 30
+ SET_MATERIAL FLESH
+    `
+    })
+    .on('initend', () => {
+      return `
+ IF (£type == "goblin_base") 
+ {
+  LOADANIM WAIT                       "Goblin_normal_wait"
+  LOADANIM TALK_NEUTRAL               "Goblin_normal_talk_neutral_headonly"
+  LOADANIM TALK_HAPPY                 "Goblin_normal_talk_happy_headonly"
+  LOADANIM TALK_ANGRY                 "Goblin_normal_talk_angry_headonly"
+ }
+
+ IF (£type == "goblin_lord") {
+  LOADANIM WAIT                       "Goblinlord_normal_wait"
+  LOADANIM TALK_NEUTRAL               "Goblinlord_normal_talk_neutral_headonly"
+  LOADANIM TALK_HAPPY                 "Goblinlord_normal_talk_happy_headonly"
+  LOADANIM TALK_ANGRY                 "Goblinlord_normal_talk_angry_headonly"
+ }
+
+ IF (£type == "goblin_king") {
+  LOADANIM WAIT                       "Goblin_normal_wait"
+  LOADANIM TALK_NEUTRAL               "Goblin_normal_talk_neutral_headonly"
+  LOADANIM TALK_HAPPY                 "Goblin_normal_talk_happy_headonly"
+  LOADANIM TALK_ANGRY                 "Goblin_normal_talk_angry_headonly"
+ }
+    `
+    })
+
+  // ----
+
+  const scale = new Variable('float', 'scale', 100)
   const isConsumable = new Variable('bool', 'is_consumable', false)
 
-  entity.script?.properties.push(Collision.on, Shadow.off, Interactivity.off, scale, isConsumable)
+  entity.script?.properties.push(Collision.on, Shadow.off, Interactivity.off, Invulnerability.on, scale, isConsumable)
   entity.script
-    ?.on('initend', () => {
+    ?.on('init', () => {
       return `
 setweapon "none"
 setgroup blob
-set_event collide_npc on
-${Invulnerability.on}
-
-set ${scale.name} ^rnd_${size.max - size.min}
-inc ${scale.name} ${size.min}
-
-setscale ${scale.name}
       `
+    })
+    .on('initend', () => {
+      return `setscale ${scale.name}`
     })
     .on('scale_threshold_change', () => {
       const tmp = new Variable('float', 'tmp', 0, true)
@@ -76,14 +104,13 @@ if (${scale.name} > ${tmp.name}) {
       `
     })
     .on('collide_npc', () => {
-      const { delay } = useDelay()
       return `
 if (${isConsumable.name} == 1) {
   sendevent grow player ~${scale.name}~
   ${Collision.off}
   ${consumeSoundScript.play()}
   objecthide self on
-  ${delay(100)} destroy self
+  sendevent consumed self nop
 } else {
   random 50 {
     ${collisionSoundScript.play()}
@@ -91,9 +118,67 @@ if (${isConsumable.name} == 1) {
 }
       `
     })
-    .on('aggression', () => {
-      return `refuse`
+    .on('restart', () => {
+      return `objecthide self off`
     })
+
+  return entity
+}
+
+// -----------------
+
+type createNpcProps = {
+  position: Vector3
+  size: { min: number; max: number }
+  type: NpcTypes
+}
+
+export function createNpc({ position, size, type }: createNpcProps) {
+  const entity = new Entity({
+    src: 'npc/goblin_base',
+  })
+
+  entity.position = position
+  entity.orientation.y = MathUtils.degToRad(randomBetween(-90, 90))
+
+  entity.withScript()
+
+  entity.script?.on('init', () => {
+    const tmp = new Variable('float', 'tmp', 0, true)
+    return `
+ set ${tmp.name} ^rnd_40
+ div ${tmp.name} 100
+ inc ${tmp.name} 0.8
+ SET_SPEAK_PITCH ${tmp.name}
+
+ set £type "${type}"
+    `
+  })
+
+  // ----
+
+  const scale = new Variable('float', 'scale', 0, true)
+
+  entity.script?.properties.push(scale)
+  entity.script?.on('init', () => {
+    return `
+set ${scale.name} ^rnd_${size.max - size.min}
+inc ${scale.name} ${size.min}
+      `
+  })
+
+  // "load" event happens before "init", so this can't be moved to the root file
+  // as when "load" runs the £type variable is not yet set
+  if (type === 'goblin_lord') {
+    entity.script?.on('load', () => {
+      return `USE_MESH "Goblin_lord\\Goblin_lord.teo"`
+    })
+  }
+  if (type === 'goblin_king') {
+    entity.script?.on('load', () => {
+      return `USE_MESH "Goblin_king\\Goblin_king.teo"`
+    })
+  }
 
   return entity
 }
