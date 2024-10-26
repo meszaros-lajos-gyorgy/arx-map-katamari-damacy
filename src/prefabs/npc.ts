@@ -1,7 +1,7 @@
 import { Audio, Entity, Vector3 } from 'arx-level-generator'
 import { Sound, SoundFlags } from 'arx-level-generator/scripting/classes'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
-import { Collision, Interactivity, Shadow, Variable } from 'arx-level-generator/scripting/properties'
+import { Collision, Interactivity, Invulnerability, Shadow, Variable } from 'arx-level-generator/scripting/properties'
 import { randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils } from 'three'
 
@@ -49,6 +49,7 @@ export function createNpc({ position, size }: createNpcProps) {
 setweapon "none"
 setgroup blob
 set_event collide_npc on
+${Invulnerability.on}
 
 set ${scale.name} ^rnd_${size.max - size.min}
 inc ${scale.name} ${size.min}
@@ -89,6 +90,9 @@ if (${isConsumable.name} == 1) {
   }
 }
       `
+    })
+    .on('aggression', () => {
+      return `refuse`
     })
 
   return entity

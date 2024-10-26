@@ -31,4 +31,4 @@ Check out other maps and mods for Arx Fatalis here: [arx-tools.github.io](https:
 - [ ] there should also be a time limit to how soon the main boss needs to be absorbed
 - [ ] display the remaining time on screen in some way
 - [ ] allow the player to restart the map as many times as he wants, the game should not have the usual round of start new game - credits screen loop, more like what sven-coop has
-- [ ] make the NPCs invulnerable and not react to attacks
+- [x] make the NPCs invulnerable and not react to attacks
