@@ -77,7 +77,7 @@ map.entities.push(
   }),
 )
 
-const larges = pickWeightedRandoms(25, npcDistribution)
+const larges = pickWeightedRandoms(30, npcDistribution)
 
 map.entities.push(
   ...larges.map(({ value }) => {
@@ -89,7 +89,7 @@ map.entities.push(
   }),
 )
 
-const extraLarges = pickWeightedRandoms(3, npcDistribution)
+const extraLarges = pickWeightedRandoms(7, npcDistribution)
 
 map.entities.push(
   ...extraLarges.map(({ value }) => {
