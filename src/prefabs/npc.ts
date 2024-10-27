@@ -1,4 +1,4 @@
-import { Audio, Entity, ScriptHandler, Vector3 } from 'arx-level-generator'
+import { Audio, Entity, Vector3 } from 'arx-level-generator'
 import { ScriptSubroutine } from 'arx-level-generator/scripting'
 import { Sound, SoundFlags } from 'arx-level-generator/scripting/classes'
 import {
@@ -14,18 +14,9 @@ import { MathUtils } from 'three'
 
 // -----------------
 
-const eatSound = new Audio({
-  filename: 'eat.wav',
-  isNative: true,
-  type: 'sfx',
-})
-
-const eatSoundScript = new Sound(eatSound.filename, SoundFlags.VaryPitch)
-
 const hasteStartSound = new Audio({
   filename: 'magic_spell_speedstart.wav',
   isNative: true,
-  type: 'sfx',
 })
 
 const hasteStartSoundScript = new Sound(hasteStartSound.filename, SoundFlags.VaryPitch)
@@ -41,6 +32,7 @@ export enum NpcTypes {
 
 type NpcData = {
   bumpSound: string
+  consumedSound: string
   baseHeight: number
   mesh: string
   tweaks?: Record<string, string | string[]>
@@ -50,14 +42,16 @@ type NpcData = {
 
 const npcData: Record<NpcTypes, NpcData> = {
   [NpcTypes.Goblin]: {
-    bumpSound: 'speak [goblin_ouch]',
+    bumpSound: 'speak [goblin_generic]',
+    consumedSound: 'speak [goblin_ouch]',
     baseHeight: 160,
     mesh: 'goblin_base/goblin_base.teo',
     idleAnimation: 'goblin_normal_wait',
     talkAnimation: 'goblin_normal_talk_neutral_headonly',
   },
   [NpcTypes.GoblinLord]: {
-    bumpSound: 'speak [goblinlord_ouch]',
+    bumpSound: 'speak [goblinlord_warning]',
+    consumedSound: 'speak [goblinlord_ouch]',
     baseHeight: 210,
     mesh: 'goblin_lord/goblin_lord.teo',
     idleAnimation: 'goblinlord_normal_wait',
@@ -65,13 +59,15 @@ const npcData: Record<NpcTypes, NpcData> = {
   },
   [NpcTypes.GoblinKing]: {
     bumpSound: 'speak [alotar_irritated]',
+    consumedSound: 'speak [alotar_pain]',
     baseHeight: 170,
     mesh: 'goblin_king/goblin_king.teo',
     idleAnimation: 'goblin_normal_wait',
     talkAnimation: 'goblin_normal_talk_neutral_headonly',
   },
   [NpcTypes.Ylside]: {
-    bumpSound: hasteStartSoundScript.play(),
+    bumpSound: 'speak [ylside_password]',
+    consumedSound: hasteStartSoundScript.play(),
     baseHeight: 180,
     mesh: 'human_base/human_base.teo',
     tweaks: {
@@ -258,7 +254,7 @@ inc ${size.name} ${sizeRange.min}
     .on('collide_npc', () => {
       return `
 if (${isConsumable.name} == 1) {
-  ${eatSoundScript.play()}
+  ${npcData[type].consumedSound}
 } else {
   ${npcData[type].bumpSound}
 }
