@@ -4,8 +4,8 @@ import { createLight } from 'arx-level-generator/tools'
 import { applyTransformations, isBetween } from 'arx-level-generator/utils'
 import { pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
 import { Mesh } from 'three'
+import { createConsumable, createRootConsumable, ConsumableTypes } from './entities/consumable.js'
 import { createGameState } from './entities/gameState.js'
-import { createNpc, createRootNpc, NpcTypes } from './entities/npc.js'
 import { enhancePlayer } from './entities/player.js'
 
 const settings = new Settings()
@@ -33,7 +33,7 @@ map.entities.push(gameState)
 map.player.withScript()
 enhancePlayer(map.player, gameState)
 
-const rootNpc = createRootNpc()
+const rootNpc = createRootConsumable()
 map.entities.push(rootNpc)
 
 // -----------------------
@@ -48,52 +48,40 @@ function createRandomPosition() {
 }
 
 const npcDistribution = [
-  { value: NpcTypes.Ylside, weight: 10 },
-  { value: NpcTypes.GoblinLord, weight: 30 },
-  { value: NpcTypes.Goblin, weight: 60 },
+  { value: ConsumableTypes.Ylside, weight: 10 },
+  { value: ConsumableTypes.GoblinLord, weight: 30 },
+  { value: ConsumableTypes.Goblin, weight: 60 },
 ]
 
 const smalls = pickWeightedRandoms(100, npcDistribution)
+const mediums = pickWeightedRandoms(50, npcDistribution)
+const larges = pickWeightedRandoms(30, npcDistribution)
+const extraLarges = pickWeightedRandoms(7, npcDistribution)
 
 map.entities.push(
   ...smalls.map(({ value }) => {
-    return createNpc({
+    return createConsumable({
       position: createRandomPosition(),
       sizeRange: { min: 20, max: 50 },
       type: value,
     })
   }),
-)
-
-const mediums = pickWeightedRandoms(50, npcDistribution)
-
-map.entities.push(
   ...mediums.map(({ value }) => {
-    return createNpc({
+    return createConsumable({
       position: createRandomPosition(),
       sizeRange: { min: 40, max: 125 },
       type: value,
     })
   }),
-)
-
-const larges = pickWeightedRandoms(30, npcDistribution)
-
-map.entities.push(
   ...larges.map(({ value }) => {
-    return createNpc({
+    return createConsumable({
       position: createRandomPosition(),
       sizeRange: { min: 100, max: 250 },
       type: value,
     })
   }),
-)
-
-const extraLarges = pickWeightedRandoms(7, npcDistribution)
-
-map.entities.push(
   ...extraLarges.map(({ value }) => {
-    return createNpc({
+    return createConsumable({
       position: createRandomPosition(),
       sizeRange: { min: 200, max: 300 },
       type: value,
@@ -103,10 +91,10 @@ map.entities.push(
 
 // -----------------------
 
-const boss = createNpc({
+const boss = createConsumable({
   position: createRandomPosition(),
   sizeRange: { min: 300, max: 300 },
-  type: NpcTypes.GoblinKing,
+  type: ConsumableTypes.GoblinKing,
 })
 boss.script?.on('consumed', () => {
   return `sendevent victory ${gameState.ref} nop`

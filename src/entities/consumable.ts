@@ -14,14 +14,14 @@ import { hasteStartSoundScript } from '@/sounds.js'
 
 // -----------------
 
-export enum NpcTypes {
+export enum ConsumableTypes {
   Goblin = 'goblin_base',
   GoblinLord = 'goblin_lord',
   GoblinKing = 'goblin_king',
   Ylside = 'human_ylside',
 }
 
-type NpcData = {
+type ConsumableData = {
   bumpSound: string
   consumedSound: string
   baseHeight: number
@@ -31,8 +31,8 @@ type NpcData = {
   talkAnimation: string
 }
 
-const npcData: Record<NpcTypes, NpcData> = {
-  [NpcTypes.Goblin]: {
+const npcData: Record<ConsumableTypes, ConsumableData> = {
+  [ConsumableTypes.Goblin]: {
     bumpSound: 'speak [goblin_generic]',
     consumedSound: 'speak [goblin_ouch]',
     baseHeight: 160,
@@ -40,7 +40,7 @@ const npcData: Record<NpcTypes, NpcData> = {
     idleAnimation: 'goblin_normal_wait',
     talkAnimation: 'goblin_normal_talk_neutral_headonly',
   },
-  [NpcTypes.GoblinLord]: {
+  [ConsumableTypes.GoblinLord]: {
     bumpSound: 'speak [goblinlord_warning]',
     consumedSound: 'speak [goblinlord_ouch]',
     baseHeight: 210,
@@ -48,7 +48,7 @@ const npcData: Record<NpcTypes, NpcData> = {
     idleAnimation: 'goblinlord_normal_wait',
     talkAnimation: 'goblinlord_normal_talk_neutral_headonly',
   },
-  [NpcTypes.GoblinKing]: {
+  [ConsumableTypes.GoblinKing]: {
     bumpSound: 'speak [alotar_irritated]',
     consumedSound: 'speak [alotar_pain]',
     baseHeight: 170,
@@ -56,7 +56,7 @@ const npcData: Record<NpcTypes, NpcData> = {
     idleAnimation: 'goblin_normal_wait',
     talkAnimation: 'goblin_normal_talk_neutral_headonly',
   },
-  [NpcTypes.Ylside]: {
+  [ConsumableTypes.Ylside]: {
     bumpSound: 'speak [ylside_password]',
     consumedSound: hasteStartSoundScript.play(),
     baseHeight: 180,
@@ -79,7 +79,7 @@ const scaleFactor = new Variable('float', 'scale_factor', 0, true) // value to b
 const tmp = new Variable('float', 'tmp', 0, true) // helper for calculations
 const lastSpokenAt = new Variable('int', 'last_spoken_at', 0, true) // (seconds)
 
-export function createRootNpc() {
+export function createRootConsumable() {
   const entity = new Entity({
     src: 'npc/goblin_base',
   })
@@ -132,28 +132,28 @@ set_speak_pitch ${tmp.name}
       return `
 physical radius 30
 
-if (£type == "${NpcTypes.Goblin}") {
-  loadanim wait         "${npcData[NpcTypes.Goblin].idleAnimation}"
-  loadanim talk_neutral "${npcData[NpcTypes.Goblin].talkAnimation}"
-  set ${baseHeight.name} ${npcData[NpcTypes.Goblin].baseHeight}
+if (£type == "${ConsumableTypes.Goblin}") {
+  loadanim wait         "${npcData[ConsumableTypes.Goblin].idleAnimation}"
+  loadanim talk_neutral "${npcData[ConsumableTypes.Goblin].talkAnimation}"
+  set ${baseHeight.name} ${npcData[ConsumableTypes.Goblin].baseHeight}
 }
 
-if (£type == "${NpcTypes.GoblinLord}") {
-  loadanim wait         "${npcData[NpcTypes.GoblinLord].idleAnimation}"
-  loadanim talk_neutral "${npcData[NpcTypes.GoblinLord].talkAnimation}"
-  set ${baseHeight.name} ${npcData[NpcTypes.GoblinLord].baseHeight}
+if (£type == "${ConsumableTypes.GoblinLord}") {
+  loadanim wait         "${npcData[ConsumableTypes.GoblinLord].idleAnimation}"
+  loadanim talk_neutral "${npcData[ConsumableTypes.GoblinLord].talkAnimation}"
+  set ${baseHeight.name} ${npcData[ConsumableTypes.GoblinLord].baseHeight}
 }
 
-if (£type == "${NpcTypes.GoblinKing}") {
-  loadanim wait         "${npcData[NpcTypes.GoblinKing].idleAnimation}"
-  loadanim talk_neutral "${npcData[NpcTypes.GoblinKing].talkAnimation}"
-  set ${baseHeight.name} ${npcData[NpcTypes.GoblinKing].baseHeight}
+if (£type == "${ConsumableTypes.GoblinKing}") {
+  loadanim wait         "${npcData[ConsumableTypes.GoblinKing].idleAnimation}"
+  loadanim talk_neutral "${npcData[ConsumableTypes.GoblinKing].talkAnimation}"
+  set ${baseHeight.name} ${npcData[ConsumableTypes.GoblinKing].baseHeight}
 }
 
-if (£type == "${NpcTypes.Ylside}") {
-  loadanim wait         "${npcData[NpcTypes.Ylside].idleAnimation}"
-  loadanim talk_neutral "${npcData[NpcTypes.Ylside].talkAnimation}"
-  set ${baseHeight.name} ${npcData[NpcTypes.Ylside].baseHeight}
+if (£type == "${ConsumableTypes.Ylside}") {
+  loadanim wait         "${npcData[ConsumableTypes.Ylside].idleAnimation}"
+  loadanim talk_neutral "${npcData[ConsumableTypes.Ylside].talkAnimation}"
+  set ${baseHeight.name} ${npcData[ConsumableTypes.Ylside].baseHeight}
 }
 
 ${resize.invoke()}
@@ -196,17 +196,17 @@ if (${isConsumable.name} == 1) {
 }
 
 if (${isConsumable.name} == 1) {
-  if (£type == "${NpcTypes.Goblin}") {
-    ${npcData[NpcTypes.Goblin].consumedSound}
+  if (£type == "${ConsumableTypes.Goblin}") {
+    ${npcData[ConsumableTypes.Goblin].consumedSound}
   }
-  if (£type == "${NpcTypes.GoblinLord}") {
-    ${npcData[NpcTypes.GoblinLord].consumedSound}
+  if (£type == "${ConsumableTypes.GoblinLord}") {
+    ${npcData[ConsumableTypes.GoblinLord].consumedSound}
   }
-  if (£type == "${NpcTypes.GoblinKing}") {
-    ${npcData[NpcTypes.GoblinKing].consumedSound}
+  if (£type == "${ConsumableTypes.GoblinKing}") {
+    ${npcData[ConsumableTypes.GoblinKing].consumedSound}
   }
-  if (£type == "${NpcTypes.Ylside}") {
-    ${npcData[NpcTypes.Ylside].consumedSound}
+  if (£type == "${ConsumableTypes.Ylside}") {
+    ${npcData[ConsumableTypes.Ylside].consumedSound}
   }
 } else {
   if (^speaking == 0) {
@@ -216,17 +216,17 @@ if (${isConsumable.name} == 1) {
     if (${tmp.name} < ^gameseconds) {
       set ${lastSpokenAt.name} ^gameseconds
       
-      if (£type == "${NpcTypes.Goblin}") {
-        ${npcData[NpcTypes.Goblin].bumpSound}
+      if (£type == "${ConsumableTypes.Goblin}") {
+        ${npcData[ConsumableTypes.Goblin].bumpSound}
       }
-      if (£type == "${NpcTypes.GoblinLord}") {
-        ${npcData[NpcTypes.GoblinLord].bumpSound}
+      if (£type == "${ConsumableTypes.GoblinLord}") {
+        ${npcData[ConsumableTypes.GoblinLord].bumpSound}
       }
-      if (£type == "${NpcTypes.GoblinKing}") {
-        ${npcData[NpcTypes.GoblinKing].bumpSound}
+      if (£type == "${ConsumableTypes.GoblinKing}") {
+        ${npcData[ConsumableTypes.GoblinKing].bumpSound}
       }
-      if (£type == "${NpcTypes.Ylside}") {
-        ${npcData[NpcTypes.Ylside].bumpSound}
+      if (£type == "${ConsumableTypes.Ylside}") {
+        ${npcData[ConsumableTypes.Ylside].bumpSound}
       }
     }
   }
@@ -244,13 +244,13 @@ objecthide self off
 
 // -----------------
 
-type createNpcProps = {
+type createConsumableProps = {
   position: Vector3
   sizeRange: { min: number; max: number }
-  type: NpcTypes
+  type: ConsumableTypes
 }
 
-export function createNpc({ position, sizeRange, type }: createNpcProps) {
+export function createConsumable({ position, sizeRange, type }: createConsumableProps) {
   // for testing baseHeight of npcs:
   // sizeRange.min = 100
   // sizeRange.max = 100
