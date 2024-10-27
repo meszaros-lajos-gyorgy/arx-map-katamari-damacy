@@ -1,6 +1,5 @@
-import { Audio, Entity, Rotation, Vector3 } from 'arx-level-generator'
+import { Entity, Rotation, Vector3 } from 'arx-level-generator'
 import { ScriptSubroutine } from 'arx-level-generator/scripting'
-import { Sound, SoundFlags } from 'arx-level-generator/scripting/classes'
 import {
   Collision,
   Interactivity,
@@ -11,15 +10,7 @@ import {
 } from 'arx-level-generator/scripting/properties'
 import { randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils } from 'three'
-
-// -----------------
-
-const hasteStartSound = new Audio({
-  filename: 'magic_spell_speedstart.wav',
-  isNative: true,
-})
-
-const hasteStartSoundScript = new Sound(hasteStartSound.filename, SoundFlags.VaryPitch)
+import { hasteStartSoundScript } from '@/sounds.js'
 
 // -----------------
 
