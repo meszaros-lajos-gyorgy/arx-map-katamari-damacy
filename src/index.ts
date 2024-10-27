@@ -123,82 +123,79 @@ map.hud.hide(HudElements.HerosayIcon)
 
 // -----------------------
 
-const rootNpc = createRootNpc()
-map.entities.push(rootNpc)
-
-for (let i = 0; i < 110; i++) {
+function createRandomPosition() {
   const position = new Vector3(0, 0, 0)
   while (isBetween(-150, 150, position.x) && isBetween(-150, 150, position.z)) {
     position.x = randomBetween(-1500, 1500)
     position.z = randomBetween(-1500, 1500)
   }
+  return position
+}
 
-  let type: NpcTypes = 'goblin_base'
-  if (randomBetween(0, 100) < 10) {
-    type = 'goblin_lord'
+const rootNpc = createRootNpc()
+map.entities.push(rootNpc)
+
+// TODO: weighted randoms
+
+for (let i = 0; i < 110; i++) {
+  let type: NpcTypes = NpcTypes.Goblin
+  const chance = randomBetween(0, 100)
+  if (chance < 10) {
+    type = NpcTypes.Ylside
+  } else if (chance < 30) {
+    type = NpcTypes.GoblinLord
   }
 
-  const npc = createNpc({ position, sizeRange: { min: 15, max: 50 }, type })
+  const npc = createNpc({ position: createRandomPosition(), sizeRange: { min: 15, max: 50 }, type })
   map.entities.push(npc)
 }
 
 for (let i = 0; i < 50; i++) {
-  const position = new Vector3(0, 0, 0)
-  while (isBetween(-150, 150, position.x) && isBetween(-150, 150, position.z)) {
-    position.x = randomBetween(-1500, 1500)
-    position.z = randomBetween(-1500, 1500)
+  let type: NpcTypes = NpcTypes.Goblin
+  const chance = randomBetween(0, 100)
+  if (chance < 10) {
+    type = NpcTypes.Ylside
+  } else if (chance < 30) {
+    type = NpcTypes.GoblinLord
   }
 
-  let type: NpcTypes = 'goblin_base'
-  if (randomBetween(0, 100) < 10) {
-    type = 'goblin_lord'
-  }
-
-  const npc = createNpc({ position, sizeRange: { min: 40, max: 150 }, type })
+  const npc = createNpc({ position: createRandomPosition(), sizeRange: { min: 40, max: 150 }, type })
   map.entities.push(npc)
 }
 
 for (let i = 0; i < 30; i++) {
-  const position = new Vector3(0, 0, 0)
-  while (isBetween(-150, 150, position.x) && isBetween(-150, 150, position.z)) {
-    position.x = randomBetween(-1500, 1500)
-    position.z = randomBetween(-1500, 1500)
+  let type: NpcTypes = NpcTypes.Goblin
+  const chance = randomBetween(0, 100)
+  if (chance < 10) {
+    type = NpcTypes.Ylside
+  } else if (chance < 30) {
+    type = NpcTypes.GoblinLord
   }
 
-  let type: NpcTypes = 'goblin_base'
-  if (randomBetween(0, 100) < 10) {
-    type = 'goblin_lord'
-  }
-
-  const npc = createNpc({ position, sizeRange: { min: 100, max: 300 }, type })
+  const npc = createNpc({ position: createRandomPosition(), sizeRange: { min: 100, max: 300 }, type })
   map.entities.push(npc)
 }
 
 for (let i = 0; i < 3; i++) {
-  const position = new Vector3(0, 0, 0)
-  while (isBetween(-150, 150, position.x) && isBetween(-150, 150, position.z)) {
-    position.x = randomBetween(-1000, 1000)
-    position.z = randomBetween(-1000, 1000)
+  let type: NpcTypes = NpcTypes.Goblin
+  const chance = randomBetween(0, 100)
+  if (chance < 10) {
+    type = NpcTypes.Ylside
+  } else if (chance < 30) {
+    type = NpcTypes.GoblinLord
   }
 
-  let type: NpcTypes = 'goblin_base'
-  if (randomBetween(0, 100) < 10) {
-    type = 'goblin_lord'
-  }
-
-  const npc = createNpc({ position, sizeRange: { min: 200, max: 300 }, type })
+  const npc = createNpc({ position: createRandomPosition(), sizeRange: { min: 200, max: 300 }, type })
   map.entities.push(npc)
 }
 
 // -----------------------
 
-const position = new Vector3(0, 0, 0)
-while (isBetween(-150, 150, position.x) && isBetween(-150, 150, position.z)) {
-  position.x = randomBetween(-1000, 1000)
-  position.z = randomBetween(-1000, 1000)
-}
-
-const boss = createNpc({ position, sizeRange: { min: 300, max: 300 }, type: 'goblin_king' })
+const boss = createNpc({
+  position: createRandomPosition(),
+  sizeRange: { min: 300, max: 300 },
+  type: NpcTypes.GoblinKing,
+})
 boss.script?.on('consumed', () => {
   return `sendevent victory player nop`
 })
