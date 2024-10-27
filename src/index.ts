@@ -47,11 +47,13 @@ function createRandomPosition() {
   return position
 }
 
-const smalls = pickWeightedRandoms(100, [
+const npcDistribution = [
   { value: NpcTypes.Ylside, weight: 10 },
   { value: NpcTypes.GoblinLord, weight: 30 },
   { value: NpcTypes.Goblin, weight: 60 },
-])
+]
+
+const smalls = pickWeightedRandoms(100, npcDistribution)
 
 map.entities.push(
   ...smalls.map(({ value }) => {
@@ -63,27 +65,19 @@ map.entities.push(
   }),
 )
 
-const mediums = pickWeightedRandoms(50, [
-  { value: NpcTypes.Ylside, weight: 10 },
-  { value: NpcTypes.GoblinLord, weight: 30 },
-  { value: NpcTypes.Goblin, weight: 60 },
-])
+const mediums = pickWeightedRandoms(50, npcDistribution)
 
 map.entities.push(
   ...mediums.map(({ value }) => {
     return createNpc({
       position: createRandomPosition(),
-      sizeRange: { min: 40, max: 150 },
+      sizeRange: { min: 40, max: 125 },
       type: value,
     })
   }),
 )
 
-const larges = pickWeightedRandoms(30, [
-  { value: NpcTypes.Ylside, weight: 10 },
-  { value: NpcTypes.GoblinLord, weight: 30 },
-  { value: NpcTypes.Goblin, weight: 60 },
-])
+const larges = pickWeightedRandoms(25, npcDistribution)
 
 map.entities.push(
   ...larges.map(({ value }) => {
@@ -95,11 +89,7 @@ map.entities.push(
   }),
 )
 
-const extraLarges = pickWeightedRandoms(3, [
-  { value: NpcTypes.Ylside, weight: 10 },
-  { value: NpcTypes.GoblinLord, weight: 30 },
-  { value: NpcTypes.Goblin, weight: 60 },
-])
+const extraLarges = pickWeightedRandoms(3, npcDistribution)
 
 map.entities.push(
   ...extraLarges.map(({ value }) => {
