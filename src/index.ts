@@ -6,8 +6,8 @@ import { createLight } from 'arx-level-generator/tools'
 import { applyTransformations, isBetween } from 'arx-level-generator/utils'
 import { randomBetween } from 'arx-level-generator/utils/random'
 import { Mesh } from 'three'
-import { createGameState } from './prefabs/gamestate.js'
-import { createNpc, createRootNpc, NpcTypes } from './prefabs/npc.js'
+import { createGameState } from './entities/gamestate.js'
+import { createNpc, createRootNpc, NpcTypes } from './entities/npc.js'
 
 const settings = new Settings()
 const map = new ArxMap()
