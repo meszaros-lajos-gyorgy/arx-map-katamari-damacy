@@ -1,10 +1,8 @@
 import { ArxMap, HudElements, QUADIFY, Settings, SHADING_SMOOTH, Vector3 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
-import { ScriptSubroutine } from 'arx-level-generator/scripting'
-import { Shadow, Speed, Variable } from 'arx-level-generator/scripting/properties'
 import { createLight } from 'arx-level-generator/tools'
 import { applyTransformations, isBetween } from 'arx-level-generator/utils'
-import { randomBetween } from 'arx-level-generator/utils/random'
+import { pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
 import { Mesh } from 'three'
 import { createGameState } from './entities/gameState.js'
 import { createNpc, createRootNpc, NpcTypes } from './entities/npc.js'
@@ -49,59 +47,69 @@ function createRandomPosition() {
   return position
 }
 
-// TODO: weighted randoms
+const smalls = pickWeightedRandoms(100, [
+  { value: NpcTypes.Ylside, weight: 10 },
+  { value: NpcTypes.GoblinLord, weight: 30 },
+  { value: NpcTypes.Goblin, weight: 60 },
+])
 
-for (let i = 0; i < 110; i++) {
-  let type: NpcTypes = NpcTypes.Goblin
-  const chance = randomBetween(0, 100)
-  if (chance < 10) {
-    type = NpcTypes.Ylside
-  } else if (chance < 30) {
-    type = NpcTypes.GoblinLord
-  }
+map.entities.push(
+  ...smalls.map(({ value }) => {
+    return createNpc({
+      position: createRandomPosition(),
+      sizeRange: { min: 20, max: 50 },
+      type: value,
+    })
+  }),
+)
 
-  const npc = createNpc({ position: createRandomPosition(), sizeRange: { min: 15, max: 50 }, type })
-  map.entities.push(npc)
-}
+const mediums = pickWeightedRandoms(50, [
+  { value: NpcTypes.Ylside, weight: 10 },
+  { value: NpcTypes.GoblinLord, weight: 30 },
+  { value: NpcTypes.Goblin, weight: 60 },
+])
 
-for (let i = 0; i < 50; i++) {
-  let type: NpcTypes = NpcTypes.Goblin
-  const chance = randomBetween(0, 100)
-  if (chance < 10) {
-    type = NpcTypes.Ylside
-  } else if (chance < 30) {
-    type = NpcTypes.GoblinLord
-  }
+map.entities.push(
+  ...mediums.map(({ value }) => {
+    return createNpc({
+      position: createRandomPosition(),
+      sizeRange: { min: 40, max: 150 },
+      type: value,
+    })
+  }),
+)
 
-  const npc = createNpc({ position: createRandomPosition(), sizeRange: { min: 40, max: 150 }, type })
-  map.entities.push(npc)
-}
+const larges = pickWeightedRandoms(30, [
+  { value: NpcTypes.Ylside, weight: 10 },
+  { value: NpcTypes.GoblinLord, weight: 30 },
+  { value: NpcTypes.Goblin, weight: 60 },
+])
 
-for (let i = 0; i < 30; i++) {
-  let type: NpcTypes = NpcTypes.Goblin
-  const chance = randomBetween(0, 100)
-  if (chance < 10) {
-    type = NpcTypes.Ylside
-  } else if (chance < 30) {
-    type = NpcTypes.GoblinLord
-  }
+map.entities.push(
+  ...larges.map(({ value }) => {
+    return createNpc({
+      position: createRandomPosition(),
+      sizeRange: { min: 100, max: 250 },
+      type: value,
+    })
+  }),
+)
 
-  const npc = createNpc({ position: createRandomPosition(), sizeRange: { min: 100, max: 300 }, type })
-  map.entities.push(npc)
-}
+const extraLarges = pickWeightedRandoms(3, [
+  { value: NpcTypes.Ylside, weight: 10 },
+  { value: NpcTypes.GoblinLord, weight: 30 },
+  { value: NpcTypes.Goblin, weight: 60 },
+])
 
-for (let i = 0; i < 3; i++) {
-  let type: NpcTypes = NpcTypes.Goblin
-  const chance = randomBetween(0, 100)
-  if (chance < 10) {
-    type = NpcTypes.Ylside
-  } else if (chance < 30) {
-    type = NpcTypes.GoblinLord
-  }
-
-  const npc = createNpc({ position: createRandomPosition(), sizeRange: { min: 200, max: 300 }, type })
-  map.entities.push(npc)
-}
+map.entities.push(
+  ...extraLarges.map(({ value }) => {
+    return createNpc({
+      position: createRandomPosition(),
+      sizeRange: { min: 200, max: 300 },
+      type: value,
+    })
+  }),
+)
 
 // -----------------------
 

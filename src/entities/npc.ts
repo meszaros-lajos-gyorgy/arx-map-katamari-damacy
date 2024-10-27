@@ -228,7 +228,7 @@ export function createNpc({ position, sizeRange, type }: createNpcProps) {
   })
 
   entity.position = position
-  entity.orientation.y = MathUtils.degToRad(randomBetween(-90, 90))
+  entity.orientation.y = MathUtils.degToRad(randomBetween(0, 360))
 
   entity.withScript()
 
