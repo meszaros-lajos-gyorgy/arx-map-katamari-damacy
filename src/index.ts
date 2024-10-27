@@ -16,6 +16,8 @@ map.config.offset = new Vector3(4000, 0, 4000)
 map.hud.hide(HudElements.Minimap)
 map.hud.hide(HudElements.HerosayIcon)
 
+await map.i18n.addFromFile('./i18n.json', settings)
+
 // -----------------------
 
 const meshes: Mesh[] = []

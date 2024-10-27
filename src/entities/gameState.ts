@@ -65,7 +65,7 @@ ${redraw.invoke()}
     })
     .on('victory', () => {
       return `
-set ${hudLine2.name} "You've won!!"
+set ${hudLine2.name} [victory]
 ${PlayerControls.off}
       `
     })
