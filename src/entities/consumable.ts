@@ -81,7 +81,7 @@ const lastSpokenAt = new Variable('int', 'last_spoken_at', 0, true) // (seconds)
 
 export function createRootConsumable() {
   const entity = new Entity({
-    src: 'npc/goblin_base',
+    src: 'npc/consumable',
   })
 
   entity.withScript()
@@ -256,7 +256,7 @@ export function createConsumable({ position, sizeRange, type }: createConsumable
   // sizeRange.max = 100
 
   const entity = new Entity({
-    src: 'npc/goblin_base',
+    src: 'npc/consumable',
     position,
     orientation: new Rotation(0, MathUtils.degToRad(randomBetween(0, 360)), 0),
   })
