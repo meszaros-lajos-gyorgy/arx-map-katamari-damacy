@@ -1,4 +1,4 @@
-import { Audio, Entity, Vector3 } from 'arx-level-generator'
+import { Audio, Entity, Rotation, Vector3 } from 'arx-level-generator'
 import { ScriptSubroutine } from 'arx-level-generator/scripting'
 import { Sound, SoundFlags } from 'arx-level-generator/scripting/classes'
 import {
@@ -96,8 +96,6 @@ export function createRootNpc() {
   entity.withScript()
   entity.script?.makeIntoRoot()
 
-  // ----
-
   const resize = new ScriptSubroutine(
     'resize',
     () => {
@@ -112,10 +110,35 @@ setscale ${scaleFactor.name}
     },
     'gosub',
   )
+
   entity.script?.subroutines.push(resize)
 
-  entity.script?.on('initend', () => {
-    return `
+  entity.script?.properties.push(
+    Collision.on,
+    Shadow.off,
+    Interactivity.off,
+    Invulnerability.on,
+    Material.flesh,
+    isConsumable,
+    size,
+    baseHeight,
+    scaleFactor,
+    tmp,
+    lastSpokenAt,
+  )
+  entity.script
+    ?.on('init', () => {
+      return `
+setgroup consumables
+
+set ${tmp.name} ^rnd_40
+div ${tmp.name} 100
+inc ${tmp.name} 0.8
+set_speak_pitch ${tmp.name}
+`
+    })
+    .on('initend', () => {
+      return `
 physical radius 30
 
 if (£type == "${NpcTypes.Goblin}") {
@@ -141,30 +164,9 @@ if (£type == "${NpcTypes.Ylside}") {
   loadanim talk_neutral "${npcData[NpcTypes.Ylside].talkAnimation}"
   set ${baseHeight.name} ${npcData[NpcTypes.Ylside].baseHeight}
 }
-    `
-  })
 
-  // ----
-
-  entity.script?.properties.push(
-    Collision.on,
-    Shadow.off,
-    Interactivity.off,
-    Invulnerability.on,
-    Material.flesh,
-    isConsumable,
-    size,
-    baseHeight,
-    scaleFactor,
-    tmp,
-    lastSpokenAt,
-  )
-  entity.script
-    ?.on('init', () => {
-      return `setgroup consumables`
-    })
-    .on('initend', () => {
-      return resize.invoke()
+${resize.invoke()}
+      `
     })
     .on('size_threshold_change', () => {
       return `
@@ -201,10 +203,49 @@ if (${isConsumable.name} == 1) {
   objecthide self on
   sendevent consumed self nop
 }
-      `
+
+if (${isConsumable.name} == 1) {
+  if (£type == "${NpcTypes.Goblin}") {
+    ${npcData[NpcTypes.Goblin].consumedSound}
+  }
+  if (£type == "${NpcTypes.GoblinLord}") {
+    ${npcData[NpcTypes.GoblinLord].consumedSound}
+  }
+  if (£type == "${NpcTypes.GoblinKing}") {
+    ${npcData[NpcTypes.GoblinKing].consumedSound}
+  }
+  if (£type == "${NpcTypes.Ylside}") {
+    ${npcData[NpcTypes.Ylside].consumedSound}
+  }
+} else {
+  if (^speaking == 0) {
+    // throttle bump sound playing by 2 seconds intervals
+    set ${tmp.name} ${lastSpokenAt.name}
+    inc ${tmp.name} 2
+    if (${tmp.name} < ^gameseconds) {
+      set ${lastSpokenAt.name} ^gameseconds
+      
+      if (£type == "${NpcTypes.Goblin}") {
+        ${npcData[NpcTypes.Goblin].bumpSound}
+      }
+      if (£type == "${NpcTypes.GoblinLord}") {
+        ${npcData[NpcTypes.GoblinLord].bumpSound}
+      }
+      if (£type == "${NpcTypes.GoblinKing}") {
+        ${npcData[NpcTypes.GoblinKing].bumpSound}
+      }
+      if (£type == "${NpcTypes.Ylside}") {
+        ${npcData[NpcTypes.Ylside].bumpSound}
+      }
+    }
+  }
+}
+  `
     })
     .on('restart', () => {
-      return `objecthide self off`
+      return `
+objecthide self off
+      `
     })
 
   return entity
@@ -225,51 +266,20 @@ export function createNpc({ position, sizeRange, type }: createNpcProps) {
 
   const entity = new Entity({
     src: 'npc/goblin_base',
+    position,
+    orientation: new Rotation(0, MathUtils.degToRad(randomBetween(0, 360)), 0),
   })
-
-  entity.position = position
-  entity.orientation.y = MathUtils.degToRad(randomBetween(0, 360))
 
   entity.withScript()
 
   entity.script?.on('init', () => {
     return `
- set ${tmp.name} ^rnd_40
- div ${tmp.name} 100
- inc ${tmp.name} 0.8
- set_speak_pitch ${tmp.name}
+set £type "${type}"
 
- set £type "${type}"
-    `
-  })
-
-  // ----
-
-  entity.script?.properties.push(size)
-  entity.script
-    ?.on('init', () => {
-      return `
 set ${size.name} ^rnd_${sizeRange.max - sizeRange.min}
 inc ${size.name} ${sizeRange.min}
       `
-    })
-    .on('collide_npc', () => {
-      return `
-if (${isConsumable.name} == 1) {
-  ${npcData[type].consumedSound}
-} else {
-  if (^speaking == 0) {
-    // throttle bump sound playing by 2 seconds intervals
-    set ${tmp.name} ${lastSpokenAt.name}
-    inc ${tmp.name} 2
-    if (${tmp.name} < ^gameseconds) {
-      set ${lastSpokenAt.name} ^gameseconds
-      ${npcData[type].bumpSound}
-    }
-  }
-}
-  `
-    })
+  })
 
   if (npcData[type].tweaks !== undefined) {
     Object.entries(npcData[type].tweaks).forEach(([key, value]) => {
