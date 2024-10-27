@@ -86,6 +86,7 @@ const size = new Variable('float', 'size', 50) // real height of the model (cent
 const baseHeight = new Variable('int', 'base_height', 180) // model height (centimeters)
 const scaleFactor = new Variable('float', 'scale_factor', 0, true) // value to be passed to setscale command (percentage)
 const tmp = new Variable('float', 'tmp', 0, true) // helper for calculations
+const lastSpokenAt = new Variable('int', 'last_spoken_at', 0, true) // (seconds)
 
 export function createRootNpc() {
   const entity = new Entity({
@@ -156,6 +157,7 @@ if (£type == "${NpcTypes.Ylside}") {
     baseHeight,
     scaleFactor,
     tmp,
+    lastSpokenAt,
   )
   entity.script
     ?.on('init', () => {
@@ -256,7 +258,15 @@ inc ${size.name} ${sizeRange.min}
 if (${isConsumable.name} == 1) {
   ${npcData[type].consumedSound}
 } else {
-  ${npcData[type].bumpSound}
+  if (^speaking == 0) {
+    // throttle bump sound playing by 2 seconds intervals
+    set ${tmp.name} ${lastSpokenAt.name}
+    inc ${tmp.name} 2
+    if (${tmp.name} < ^gameseconds) {
+      set ${lastSpokenAt.name} ^gameseconds
+      ${npcData[type].bumpSound}
+    }
+  }
 }
   `
     })
