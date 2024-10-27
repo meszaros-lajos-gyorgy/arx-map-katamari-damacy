@@ -51,28 +51,28 @@ type NpcData = {
 const npcData: Record<NpcTypes, NpcData> = {
   [NpcTypes.Goblin]: {
     bumpSound: 'speak [goblin_ouch]',
-    baseHeight: 151,
+    baseHeight: 160,
     mesh: 'goblin_base/goblin_base.teo',
     idleAnimation: 'goblin_normal_wait',
     talkAnimation: 'goblin_normal_talk_neutral_headonly',
   },
   [NpcTypes.GoblinLord]: {
     bumpSound: 'speak [goblinlord_ouch]',
-    baseHeight: 213,
+    baseHeight: 210,
     mesh: 'goblin_lord/goblin_lord.teo',
     idleAnimation: 'goblinlord_normal_wait',
     talkAnimation: 'goblinlord_normal_talk_neutral_headonly',
   },
   [NpcTypes.GoblinKing]: {
     bumpSound: 'speak [alotar_irritated]',
-    baseHeight: 184,
+    baseHeight: 170,
     mesh: 'goblin_king/goblin_king.teo',
     idleAnimation: 'goblin_normal_wait',
     talkAnimation: 'goblin_normal_talk_neutral_headonly',
   },
   [NpcTypes.Ylside]: {
     bumpSound: hasteStartSoundScript.play(),
-    baseHeight: 182,
+    baseHeight: 180,
     mesh: 'human_base/human_base.teo',
     tweaks: {
       lower: 'human_ylside',
@@ -221,6 +221,10 @@ type createNpcProps = {
 }
 
 export function createNpc({ position, sizeRange, type }: createNpcProps) {
+  // for testing baseHeight of npcs:
+  // sizeRange.min = 100
+  // sizeRange.max = 100
+
   const entity = new Entity({
     src: 'npc/goblin_base',
   })
