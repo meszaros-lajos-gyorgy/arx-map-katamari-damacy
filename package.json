@@ -1,6 +1,6 @@
 {
   "name": "arx-map-katamari-damacy",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "An Arx Fatalis mod where you consume things smaller than you while subsequently growing and trying to reach a given size within a given time limit",
   "main": "src/index.ts",
   "type": "module",
