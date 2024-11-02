@@ -4,7 +4,7 @@ import { createLight } from 'arx-level-generator/tools'
 import { applyTransformations, isBetween } from 'arx-level-generator/utils'
 import { pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
 import { Mesh } from 'three'
-import { createConsumable, createRootConsumable, ConsumableTypes } from './entities/consumable.js'
+import { createEntity, createRootEntity, EntityTypes } from './entities/entity.js'
 import { createGameState } from './entities/gameState.js'
 import { enhancePlayer } from './entities/player.js'
 
@@ -35,7 +35,7 @@ map.entities.push(gameState)
 map.player.withScript()
 enhancePlayer(map.player, gameState)
 
-const rootNpc = createRootConsumable()
+const rootNpc = createRootEntity()
 map.entities.push(rootNpc)
 
 // -----------------------
@@ -50,9 +50,9 @@ function createRandomPosition() {
 }
 
 const npcDistribution = [
-  { value: ConsumableTypes.Ylside, weight: 10 },
-  { value: ConsumableTypes.GoblinLord, weight: 30 },
-  { value: ConsumableTypes.Goblin, weight: 60 },
+  { value: EntityTypes.Ylside, weight: 10 },
+  { value: EntityTypes.GoblinLord, weight: 30 },
+  { value: EntityTypes.Goblin, weight: 60 },
 ]
 
 const smalls = pickWeightedRandoms(100, npcDistribution)
@@ -62,28 +62,28 @@ const extraLarges = pickWeightedRandoms(7, npcDistribution)
 
 map.entities.push(
   ...smalls.map(({ value }) => {
-    return createConsumable({
+    return createEntity({
       position: createRandomPosition(),
       sizeRange: { min: 20, max: 50 },
       type: value,
     })
   }),
   ...mediums.map(({ value }) => {
-    return createConsumable({
+    return createEntity({
       position: createRandomPosition(),
       sizeRange: { min: 40, max: 125 },
       type: value,
     })
   }),
   ...larges.map(({ value }) => {
-    return createConsumable({
+    return createEntity({
       position: createRandomPosition(),
       sizeRange: { min: 100, max: 250 },
       type: value,
     })
   }),
   ...extraLarges.map(({ value }) => {
-    return createConsumable({
+    return createEntity({
       position: createRandomPosition(),
       sizeRange: { min: 200, max: 300 },
       type: value,
@@ -93,10 +93,10 @@ map.entities.push(
 
 // -----------------------
 
-const boss = createConsumable({
+const boss = createEntity({
   position: createRandomPosition(),
   sizeRange: { min: 300, max: 300 },
-  type: ConsumableTypes.GoblinKing,
+  type: EntityTypes.GoblinKing,
 })
 boss.script?.on('consumed', () => {
   return `sendevent victory ${gameState.ref} nop`

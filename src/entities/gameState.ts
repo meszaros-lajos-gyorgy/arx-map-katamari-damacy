@@ -67,6 +67,8 @@ ${redraw.invoke()}
       return `
 set ${hudLine2.name} [victory]
 ${PlayerControls.off}
+
+${redraw.invoke()}
       `
     })
 
