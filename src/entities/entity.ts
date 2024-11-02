@@ -10,7 +10,7 @@ import {
 } from 'arx-level-generator/scripting/properties'
 import { randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils } from 'three'
-import { carrotModel } from '@/models.js'
+import { carrotModel, leekModel } from '@/models.js'
 import { eatSoundScript, hasteStartSoundScript, ylsideDyingSoundScript } from '@/sounds.js'
 
 // -----------------
@@ -21,6 +21,7 @@ export enum EntityTypes {
   GoblinKing = 'goblin_king',
   Ylside = 'human_ylside',
   Carrot = 'carrot',
+  Leek = 'food_leek',
 }
 
 type EntityDefinition = {
@@ -89,6 +90,12 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     mesh: carrotModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
   },
+  [EntityTypes.Leek]: {
+    consumedSound: eatSoundScript.play(),
+    baseHeight: 75,
+    mesh: leekModel,
+    orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
+  },
 }
 
 // -----------------
@@ -102,18 +109,23 @@ const varScaleFactor = new Variable('float', 'scale_factor', 0, true) // value t
 const varTmp = new Variable('float', 'tmp', 0, true) // helper for calculations
 const varLastSpokenAt = new Variable('int', 'last_spoken_at', 0, true) // (seconds)
 
-export function createRootEntity() {
-  const entity = new Entity({
-    src: 'npc/entity',
-  })
+export function createRootEntities(): Entity[] {
+  return Object.values(EntityTypes).map((type) => {
+    const entity = new Entity({
+      src: `npc/entity/${type}`,
+    })
 
-  entity.withScript()
-  entity.script?.makeIntoRoot()
+    if (entityDefinitions[type].mesh instanceof EntityModel) {
+      entity.model = entityDefinitions[type].mesh
+    }
 
-  const resize = new ScriptSubroutine(
-    'resize',
-    () => {
-      return `
+    entity.withScript()
+    entity.script?.makeIntoRoot()
+
+    const resize = new ScriptSubroutine(
+      'resize',
+      () => {
+        return `
 // scaleFactor % = (playerSize cm / playerBaseHeight cm) * 100
 set ${varScaleFactor.name} ${varSize.name}
 div ${varScaleFactor.name} ${varBaseHeight.name}
@@ -121,28 +133,28 @@ mul ${varScaleFactor.name} 100
 
 setscale ${varScaleFactor.name}
   `
-    },
-    'gosub',
-  )
+      },
+      'gosub',
+    )
 
-  entity.script?.subroutines.push(resize)
+    entity.script?.subroutines.push(resize)
 
-  entity.script?.properties.push(
-    Collision.on,
-    Shadow.off,
-    Interactivity.off,
-    Invulnerability.on,
-    Material.flesh,
-    varIsConsumable,
-    varSize,
-    varBaseHeight,
-    varScaleFactor,
-    varTmp,
-    varLastSpokenAt,
-  )
-  entity.script
-    ?.on('init', () => {
-      return `
+    entity.script?.properties.push(
+      Collision.on,
+      Shadow.off,
+      Interactivity.off,
+      Invulnerability.on,
+      Material.flesh,
+      varIsConsumable,
+      varSize,
+      varBaseHeight,
+      varScaleFactor,
+      varTmp,
+      varLastSpokenAt,
+    )
+    entity.script
+      ?.on('init', () => {
+        return `
 setgroup consumables
 
 set ${varTmp.name} ^rnd_40
@@ -152,12 +164,12 @@ set_speak_pitch ${varTmp.name}
 
 physical radius 30
 `
-    })
-    .on('restart', () => {
-      return `objecthide self off`
-    })
-    .on('size_threshold_change', () => {
-      return `
+      })
+      .on('restart', () => {
+        return `objecthide self off`
+      })
+      .on('size_threshold_change', () => {
+        return `
 if (${varSize.name} < ^&param1) {
   set ${varIsConsumable.name} 1
 } else {
@@ -182,9 +194,9 @@ if (${varSize.name} < ${varTmp.name}) {
   objecthide self on
 }
       `
-    })
-    .on('collide_npc', () => {
-      return `
+      })
+      .on('collide_npc', () => {
+        return `
 if (${varIsConsumable.name} == 1) {
   sendevent grow player ~${varSize.name}~
   ${Collision.off}
@@ -192,12 +204,7 @@ if (${varIsConsumable.name} == 1) {
   sendevent consumed self nop
 }
 `
-    })
-
-  Object.values(EntityTypes).forEach((type) => {
-    if (entityDefinitions[type].mesh instanceof EntityModel) {
-      entity.model = entityDefinitions[type].mesh
-    }
+      })
 
     entity.script
       ?.on('initend', () => {
@@ -213,48 +220,49 @@ if (${varIsConsumable.name} == 1) {
           })
         }
 
+        return `
+loadanim wait "${entityDefinitions[type].idleAnimation ?? 'gargoyle_wait'}"
+${entityDefinitions[type].talkAnimation ? `loadanim talk_neutral "${entityDefinitions[type].talkAnimation}"` : ''}
+set ${varBaseHeight.name} ${entityDefinitions[type].baseHeight}
+
+${resize.invoke()}
+
+${tweaks.join('\n')}
+`
+      })
+      .on('load', () => {
         let usemesh: string = ''
         if (typeof entityDefinitions[type].mesh === 'string') {
           usemesh = `use_mesh "${entityDefinitions[type].mesh}"`
         }
 
         return `
-if (${varType.name} == "${type}") {
-  loadanim wait "${entityDefinitions[type].idleAnimation ?? 'gargoyle_wait'}"
-  ${entityDefinitions[type].talkAnimation ? `loadanim talk_neutral "${entityDefinitions[type].talkAnimation}"` : ''}
-  set ${varBaseHeight.name} ${entityDefinitions[type].baseHeight}
-
-  ${resize.invoke()}
-  ${usemesh}
-  ${tweaks.join('\n')}
-}
+${usemesh}
 `
       })
       .on('collide_npc', () => {
         return `
-if (${varType.name} == "${type}") {
-  if (${varIsConsumable.name} == 1) {
-    ${entityDefinitions[type].consumedSound}
-  }
-  
-  if (${varIsConsumable.name} == 0) {
-    if (^speaking == 0) {
-      // throttle bump sounds by 2 seconds intervals
-      set ${varTmp.name} ${varLastSpokenAt.name}
-      inc ${varTmp.name} 2
-      if (${varTmp.name} < ^gameseconds) {
-        set ${varLastSpokenAt.name} ^gameseconds
+if (${varIsConsumable.name} == 1) {
+  ${entityDefinitions[type].consumedSound}
+}
 
-        ${entityDefinitions[type].bumpSound ?? ''}
-      }
+if (${varIsConsumable.name} == 0) {
+  if (^speaking == 0) {
+    // throttle bump sounds by 2 seconds intervals
+    set ${varTmp.name} ${varLastSpokenAt.name}
+    inc ${varTmp.name} 2
+    if (${varTmp.name} < ^gameseconds) {
+      set ${varLastSpokenAt.name} ^gameseconds
+
+      ${entityDefinitions[type].bumpSound ?? ''}
     }
   }
 }
 `
       })
-  })
 
-  return entity
+    return entity
+  })
 }
 
 // -----------------
@@ -277,7 +285,7 @@ export function createEntity({ position, size, type }: createEntityProps) {
   }
 
   const entity = new Entity({
-    src: 'npc/entity',
+    src: `npc/entity/${type}`,
     position,
     orientation,
   })

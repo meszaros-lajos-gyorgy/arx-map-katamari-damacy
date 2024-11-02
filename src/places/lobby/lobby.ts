@@ -1,14 +1,9 @@
-import { Place } from '../types.js'
+import { ArxMap } from 'arx-level-generator'
 
-export function createLobby(): Place {
-  const place: Place = {
-    entities: [],
-    lights: [],
-    meshes: [],
-    zones: [],
-  }
+export function createLobby(): ArxMap {
+  const map = new ArxMap()
 
   // TODO
 
-  return place
+  return map
 }

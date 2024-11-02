@@ -1,25 +1,24 @@
-import { Vector3 } from 'arx-level-generator'
+import { ArxMap, QUADIFY, SHADING_SMOOTH, Vector3 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
 import { createLight } from 'arx-level-generator/tools'
 import { randomBetween } from 'arx-level-generator/utils/random'
-import { Place } from '../types.js'
 
-export function createMap1(): Place {
-  const place: Place = {
-    entities: [],
-    lights: [],
-    meshes: [],
-    zones: [],
-  }
+export function createMap1(): ArxMap {
+  const map = new ArxMap()
 
-  const plane = createPlaneMesh({
-    size: 4000,
-  })
-  place.meshes.push(plane)
+  map.polygons.addThreeJsMesh(
+    createPlaneMesh({
+      size: 4000,
+    }),
+    {
+      tryToQuadify: QUADIFY,
+      shading: SHADING_SMOOTH,
+    },
+  )
 
   for (let x = 0; x < 8; x++) {
     for (let z = 0; z < 8; z++) {
-      place.lights.push(
+      map.lights.push(
         createLight({
           position: new Vector3(-2000 + 250 + x * 500, -500, -2000 + 250 + z * 500),
           radius: 1000,
@@ -29,5 +28,5 @@ export function createMap1(): Place {
     }
   }
 
-  return place
+  return map
 }
