@@ -64,28 +64,28 @@ map.entities.push(
   ...smalls.map(({ value }) => {
     return createEntity({
       position: createRandomPosition(),
-      sizeRange: { min: 20, max: 50 },
+      height: randomBetween(20, 50),
       type: value,
     })
   }),
   ...mediums.map(({ value }) => {
     return createEntity({
       position: createRandomPosition(),
-      sizeRange: { min: 40, max: 125 },
+      height: randomBetween(40, 125),
       type: value,
     })
   }),
   ...larges.map(({ value }) => {
     return createEntity({
       position: createRandomPosition(),
-      sizeRange: { min: 100, max: 250 },
+      height: randomBetween(100, 250),
       type: value,
     })
   }),
   ...extraLarges.map(({ value }) => {
     return createEntity({
       position: createRandomPosition(),
-      sizeRange: { min: 200, max: 300 },
+      height: randomBetween(200, 300),
       type: value,
     })
   }),
@@ -95,7 +95,7 @@ map.entities.push(
 
 const boss = createEntity({
   position: createRandomPosition(),
-  sizeRange: { min: 300, max: 300 },
+  height: 300,
   type: EntityTypes.GoblinKing,
 })
 boss.script?.on('consumed', () => {

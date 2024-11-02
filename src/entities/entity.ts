@@ -70,10 +70,14 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
   },
 }
 
+const types = [EntityTypes.Goblin, EntityTypes.GoblinLord, EntityTypes.GoblinKing, EntityTypes.Ylside]
+
 // -----------------
 
-const isConsumable = new Variable('bool', 'is_consumable', false)
+// TODO: extract type variable here
 const size = new Variable('float', 'size', 50) // real height of the model (centimeters)
+
+const isConsumable = new Variable('bool', 'is_consumable', false)
 const baseHeight = new Variable('int', 'base_height', 180) // model height (centimeters)
 const scaleFactor = new Variable('float', 'scale_factor', 0, true) // value to be passed to setscale command (percentage)
 const tmp = new Variable('float', 'tmp', 0, true) // helper for calculations
@@ -103,8 +107,6 @@ setscale ${scaleFactor.name}
   )
 
   entity.script?.subroutines.push(resize)
-
-  const types = [EntityTypes.Goblin, EntityTypes.GoblinLord, EntityTypes.GoblinKing, EntityTypes.Ylside]
 
   entity.script?.properties.push(
     Collision.on,
@@ -248,15 +250,14 @@ if (£type == "${type}") {
 
 type createEntityProps = {
   position: Vector3
-  sizeRange: { min: number; max: number }
+  /**
+   * centimeters
+   */
+  height: number
   type: EntityTypes
 }
 
-export function createEntity({ position, sizeRange, type }: createEntityProps) {
-  // for testing baseHeight of npcs:
-  // sizeRange.min = 100
-  // sizeRange.max = 100
-
+export function createEntity({ position, height, type }: createEntityProps) {
   const entity = new Entity({
     src: 'npc/entity',
     position,
@@ -265,12 +266,13 @@ export function createEntity({ position, sizeRange, type }: createEntityProps) {
 
   entity.withScript()
 
+  const size = new Variable('float', 'size', height) // real height of the model (centimeters)
+
+  entity.script?.properties.push(size)
+
   entity.script?.on('init', () => {
     return `
 set £type "${type}"
-
-set ${size.name} ^rnd_${sizeRange.max - sizeRange.min}
-inc ${size.name} ${sizeRange.min}
       `
   })
 
