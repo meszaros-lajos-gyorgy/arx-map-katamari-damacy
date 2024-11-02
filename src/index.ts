@@ -67,6 +67,7 @@ function createRandomPosition() {
 
 const npcDistribution = [
   { value: EntityTypes.Ylside, weight: 10 },
+  { value: EntityTypes.Carrot, weight: 20 },
   { value: EntityTypes.GoblinLord, weight: 30 },
   { value: EntityTypes.Goblin, weight: 60 },
 ]
@@ -121,34 +122,37 @@ map.entities.push(boss)
 
 // -----------------------
 
-// meshes.push(
-//   createBox({
-//     position: new Vector3(0, -50, 300),
-//     size: new Vector3(100, 100, 100),
-//     texture: Texture.uvDebugTexture,
-//   }),
-//   createBox({
-//     position: new Vector3(0, -150, 300),
-//     size: new Vector3(100, 100, 100),
-//     texture: Texture.uvDebugTexture,
-//   }),
-//   // createBox({
-//   //   position: new Vector3(0, -250, 300),
-//   //   size: new Vector3(100, 100, 100),
-//   //   texture: Texture.uvDebugTexture,
-//   // }),
-// )
+/*
+meshes.push(
+  createBox({
+    position: new Vector3(0, -50, 300),
+    size: new Vector3(100, 100, 100),
+    texture: Texture.uvDebugTexture,
+  }),
+  createBox({
+    position: new Vector3(0, -150, 300),
+    size: new Vector3(100, 100, 100),
+    texture: Texture.uvDebugTexture,
+  }),
+  // createBox({
+  //   position: new Vector3(0, -250, 300),
+  //   size: new Vector3(100, 100, 100),
+  //   texture: Texture.uvDebugTexture,
+  // }),
+)
 
-// const entity = new Entity({
-//   src: 'npc/goblin_base',
-//   position: new Vector3(0, 0, 250),
-// })
-// entity.withScript()
+const entity = new Entity({
+  src: 'items/provisions/carrot',
+  position: new Vector3(0, -30, 250),
+  orientation: new Rotation(0, 0, MathUtils.degToRad(-90)),
+})
+entity.withScript()
 // entity.script?.on('load', () => {
 //   return `USE_MESH "Goblin_king\\Goblin_king.teo"`
 // })
 
-// map.entities.push(entity)
+map.entities.push(entity)
+*/
 
 // -----------------------
 

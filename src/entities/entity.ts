@@ -1,4 +1,4 @@
-import { Entity, Rotation, Vector3 } from 'arx-level-generator'
+import { Entity, EntityModel, Rotation, Vector3 } from 'arx-level-generator'
 import { ScriptSubroutine } from 'arx-level-generator/scripting'
 import {
   Collision,
@@ -10,7 +10,8 @@ import {
 } from 'arx-level-generator/scripting/properties'
 import { randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils } from 'three'
-import { hasteStartSoundScript, ylsideDyingSoundScript } from '@/sounds.js'
+import { carrotModel } from '@/models.js'
+import { eatSoundScript, hasteStartSoundScript, ylsideDyingSoundScript } from '@/sounds.js'
 
 // -----------------
 
@@ -19,16 +20,18 @@ export enum EntityTypes {
   GoblinLord = 'goblin_lord',
   GoblinKing = 'goblin_king',
   Ylside = 'human_ylside',
+  Carrot = 'carrot',
 }
 
 type EntityDefinition = {
-  bumpSound: string
+  bumpSound?: string
   consumedSound: string
   baseHeight: number
-  mesh: string
+  mesh: string | EntityModel
   tweaks?: Record<string, string | string[]>
-  idleAnimation: string
-  talkAnimation: string
+  idleAnimation?: string
+  talkAnimation?: string
+  orientation?: Rotation
 }
 
 const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
@@ -79,6 +82,12 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     },
     idleAnimation: 'ylside_wait',
     talkAnimation: 'human_talk_neutral_headonly',
+  },
+  [EntityTypes.Carrot]: {
+    consumedSound: eatSoundScript.play(),
+    baseHeight: 52,
+    mesh: carrotModel,
+    orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
   },
 }
 
@@ -186,6 +195,10 @@ if (${varIsConsumable.name} == 1) {
     })
 
   Object.values(EntityTypes).forEach((type) => {
+    if (entityDefinitions[type].mesh instanceof EntityModel) {
+      entity.model = entityDefinitions[type].mesh
+    }
+
     entity.script
       ?.on('initend', () => {
         let tweaks: string[] = []
@@ -200,15 +213,19 @@ if (${varIsConsumable.name} == 1) {
           })
         }
 
+        let usemesh: string = ''
+        if (typeof entityDefinitions[type].mesh === 'string') {
+          usemesh = `use_mesh "${entityDefinitions[type].mesh}"`
+        }
+
         return `
 if (${varType.name} == "${type}") {
-  loadanim wait         "${entityDefinitions[type].idleAnimation}"
-  loadanim talk_neutral "${entityDefinitions[type].talkAnimation}"
+  loadanim wait "${entityDefinitions[type].idleAnimation ?? 'gargoyle_wait'}"
+  ${entityDefinitions[type].talkAnimation ? `loadanim talk_neutral "${entityDefinitions[type].talkAnimation}"` : ''}
   set ${varBaseHeight.name} ${entityDefinitions[type].baseHeight}
 
   ${resize.invoke()}
-
-  use_mesh "${entityDefinitions[type].mesh}"
+  ${usemesh}
   ${tweaks.join('\n')}
 }
 `
@@ -227,8 +244,8 @@ if (${varType.name} == "${type}") {
       inc ${varTmp.name} 2
       if (${varTmp.name} < ^gameseconds) {
         set ${varLastSpokenAt.name} ^gameseconds
-      
-        ${entityDefinitions[type].bumpSound}
+
+        ${entityDefinitions[type].bumpSound ?? ''}
       }
     }
   }
@@ -252,10 +269,17 @@ type createEntityProps = {
 }
 
 export function createEntity({ position, size, type }: createEntityProps) {
+  let orientation: Rotation
+  if (entityDefinitions[type].orientation !== undefined) {
+    orientation = entityDefinitions[type].orientation
+  } else {
+    orientation = new Rotation(0, MathUtils.degToRad(randomBetween(0, 360)), 0)
+  }
+
   const entity = new Entity({
     src: 'npc/entity',
     position,
-    orientation: new Rotation(0, MathUtils.degToRad(randomBetween(0, 360)), 0),
+    orientation,
   })
 
   entity.withScript()
