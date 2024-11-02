@@ -231,14 +231,11 @@ ${tweaks.join('\n')}
 `
       })
       .on('load', () => {
-        let usemesh: string = ''
         if (typeof entityDefinitions[type].mesh === 'string') {
-          usemesh = `use_mesh "${entityDefinitions[type].mesh}"`
+          return `use_mesh "${entityDefinitions[type].mesh}"`
+        } else {
+          return ''
         }
-
-        return `
-${usemesh}
-`
       })
       .on('collide_npc', () => {
         return `
