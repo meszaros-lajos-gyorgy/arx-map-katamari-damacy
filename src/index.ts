@@ -1,12 +1,21 @@
-import { ArxMap, HudElements, QUADIFY, Settings, SHADING_SMOOTH, Vector3 } from 'arx-level-generator'
-import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
-import { createLight } from 'arx-level-generator/tools'
+import {
+  ArxMap,
+  Entity,
+  HudElements,
+  Light,
+  QUADIFY,
+  Settings,
+  SHADING_SMOOTH,
+  Vector3,
+  Zone,
+} from 'arx-level-generator'
 import { applyTransformations, isBetween } from 'arx-level-generator/utils'
 import { pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
 import { Mesh } from 'three'
 import { createEntity, createRootEntity, EntityTypes } from './entities/entity.js'
 import { createGameState } from './entities/gameState.js'
 import { enhancePlayer } from './entities/player.js'
+import { createMap1 } from './places/map1/map1.js'
 
 const settings = new Settings()
 const map = new ArxMap()
@@ -20,12 +29,19 @@ await map.i18n.addFromFile('./i18n.json', settings)
 
 // -----------------------
 
+const entities: Entity[] = []
+const lights: Light[] = []
 const meshes: Mesh[] = []
+const zones: Zone[] = []
 
-const plane = createPlaneMesh({
-  size: 4000,
-})
-meshes.push(plane)
+// -----------------------
+
+const map1 = createMap1()
+
+entities.push(...map1.entities)
+lights.push(...map1.lights)
+meshes.push(...map1.meshes)
+zones.push(...map1.zones)
 
 // -----------------------
 
@@ -64,28 +80,28 @@ map.entities.push(
   ...smalls.map(({ value }) => {
     return createEntity({
       position: createRandomPosition(),
-      height: randomBetween(20, 50),
+      size: randomBetween(20, 50),
       type: value,
     })
   }),
   ...mediums.map(({ value }) => {
     return createEntity({
       position: createRandomPosition(),
-      height: randomBetween(40, 125),
+      size: randomBetween(40, 125),
       type: value,
     })
   }),
   ...larges.map(({ value }) => {
     return createEntity({
       position: createRandomPosition(),
-      height: randomBetween(100, 250),
+      size: randomBetween(100, 250),
       type: value,
     })
   }),
   ...extraLarges.map(({ value }) => {
     return createEntity({
       position: createRandomPosition(),
-      height: randomBetween(200, 300),
+      size: randomBetween(200, 300),
       type: value,
     })
   }),
@@ -95,27 +111,13 @@ map.entities.push(
 
 const boss = createEntity({
   position: createRandomPosition(),
-  height: 300,
+  size: 300,
   type: EntityTypes.GoblinKing,
 })
 boss.script?.on('consumed', () => {
   return `sendevent victory ${gameState.ref} nop`
 })
 map.entities.push(boss)
-
-// -----------------------
-
-for (let x = 0; x < 8; x++) {
-  for (let z = 0; z < 8; z++) {
-    map.lights.push(
-      createLight({
-        position: new Vector3(-2000 + 250 + x * 500, -500, -2000 + 250 + z * 500),
-        radius: 1000,
-        intensity: randomBetween(0.5, 1),
-      }),
-    )
-  }
-}
 
 // -----------------------
 
@@ -150,6 +152,10 @@ for (let x = 0; x < 8; x++) {
 
 // -----------------------
 
+map.entities.push(...entities)
+
+map.lights.push(...lights)
+
 meshes.forEach((mesh) => {
   applyTransformations(mesh)
   mesh.translateX(map.config.offset.x)
@@ -162,6 +168,8 @@ meshes.forEach((mesh) => {
     shading: SHADING_SMOOTH,
   })
 })
+
+map.zones.push(...zones)
 
 // -----------------------
 

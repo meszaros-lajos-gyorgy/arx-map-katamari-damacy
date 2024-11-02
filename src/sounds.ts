@@ -11,5 +11,11 @@ const eatSound = new Audio({
   isNative: true,
 })
 
+const ylsideDyingSound = new Audio({
+  filename: 'ylside_death.wav',
+  isNative: true,
+})
+
 export const hasteStartSoundScript = new Sound(hasteStartSound.filename, SoundFlags.VaryPitch)
 export const eatSoundScript = new Sound(eatSound.filename, SoundFlags.VaryPitch)
+export const ylsideDyingSoundScript = new Sound(ylsideDyingSound.filename, SoundFlags.VaryPitch)

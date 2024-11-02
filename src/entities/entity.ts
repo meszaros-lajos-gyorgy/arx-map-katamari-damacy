@@ -10,7 +10,7 @@ import {
 } from 'arx-level-generator/scripting/properties'
 import { randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils } from 'three'
-import { hasteStartSoundScript } from '@/sounds.js'
+import { hasteStartSoundScript, ylsideDyingSoundScript } from '@/sounds.js'
 
 // -----------------
 
@@ -42,7 +42,13 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
   },
   [EntityTypes.GoblinLord]: {
     bumpSound: 'speak [goblinlord_warning]',
-    consumedSound: 'speak [goblinlord_ouch]',
+    consumedSound: `
+    random 50 {
+      speak [goblinlord_ouch]
+    } else {
+      speak [goblinlord_dying]
+    }
+`,
     baseHeight: 210,
     mesh: 'goblin_lord/goblin_lord.teo',
     idleAnimation: 'goblinlord_normal_wait',
@@ -58,7 +64,13 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
   },
   [EntityTypes.Ylside]: {
     bumpSound: 'speak [ylside_password]',
-    consumedSound: hasteStartSoundScript.play(),
+    consumedSound: `
+    random 10 {
+      ${ylsideDyingSoundScript.play()}
+    } else {
+      ${hasteStartSoundScript.play()}
+    }
+`,
     baseHeight: 180,
     mesh: 'human_base/human_base.teo',
     tweaks: {
@@ -70,18 +82,16 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
   },
 }
 
-const types = [EntityTypes.Goblin, EntityTypes.GoblinLord, EntityTypes.GoblinKing, EntityTypes.Ylside]
-
 // -----------------
 
-// TODO: extract type variable here
-const size = new Variable('float', 'size', 50) // real height of the model (centimeters)
+const varType = new Variable('string', 'type', '', true)
+const varSize = new Variable('float', 'size', 50) // real height of the model (centimeters)
 
-const isConsumable = new Variable('bool', 'is_consumable', false)
-const baseHeight = new Variable('int', 'base_height', 180) // model height (centimeters)
-const scaleFactor = new Variable('float', 'scale_factor', 0, true) // value to be passed to setscale command (percentage)
-const tmp = new Variable('float', 'tmp', 0, true) // helper for calculations
-const lastSpokenAt = new Variable('int', 'last_spoken_at', 0, true) // (seconds)
+const varIsConsumable = new Variable('bool', 'is_consumable', false)
+const varBaseHeight = new Variable('int', 'base_height', 180) // model height (centimeters)
+const varScaleFactor = new Variable('float', 'scale_factor', 0, true) // value to be passed to setscale command (percentage)
+const varTmp = new Variable('float', 'tmp', 0, true) // helper for calculations
+const varLastSpokenAt = new Variable('int', 'last_spoken_at', 0, true) // (seconds)
 
 export function createRootEntity() {
   const entity = new Entity({
@@ -96,11 +106,11 @@ export function createRootEntity() {
     () => {
       return `
 // scaleFactor % = (playerSize cm / playerBaseHeight cm) * 100
-set ${scaleFactor.name} ${size.name}
-div ${scaleFactor.name} ${baseHeight.name}
-mul ${scaleFactor.name} 100
+set ${varScaleFactor.name} ${varSize.name}
+div ${varScaleFactor.name} ${varBaseHeight.name}
+mul ${varScaleFactor.name} 100
 
-setscale ${scaleFactor.name}
+setscale ${varScaleFactor.name}
   `
     },
     'gosub',
@@ -114,58 +124,42 @@ setscale ${scaleFactor.name}
     Interactivity.off,
     Invulnerability.on,
     Material.flesh,
-    isConsumable,
-    size,
-    baseHeight,
-    scaleFactor,
-    tmp,
-    lastSpokenAt,
+    varIsConsumable,
+    varSize,
+    varBaseHeight,
+    varScaleFactor,
+    varTmp,
+    varLastSpokenAt,
   )
   entity.script
     ?.on('init', () => {
       return `
 setgroup consumables
 
-set ${tmp.name} ^rnd_40
-div ${tmp.name} 100
-inc ${tmp.name} 0.8
-set_speak_pitch ${tmp.name}
+set ${varTmp.name} ^rnd_40
+div ${varTmp.name} 100
+inc ${varTmp.name} 0.8
+set_speak_pitch ${varTmp.name}
+
+physical radius 30
 `
     })
-    .on('initend', () => {
-      return `physical radius 30`
+    .on('restart', () => {
+      return `objecthide self off`
     })
-
-  types.forEach((type) => {
-    entity.script?.on('initend', () => {
+    .on('size_threshold_change', () => {
       return `
-if (£type == "${type}") {
-  loadanim wait         "${entityDefinitions[type].idleAnimation}"
-  loadanim talk_neutral "${entityDefinitions[type].talkAnimation}"
-  set ${baseHeight.name} ${entityDefinitions[type].baseHeight}
-}
-`
-    })
-  })
-
-  entity.script?.on('initend', () => {
-    return resize.invoke()
-  })
-
-  entity.script
-    ?.on('size_threshold_change', () => {
-      return `
-if (${size.name} < ^&param1) {
-  set ${isConsumable.name} 1
+if (${varSize.name} < ^&param1) {
+  set ${varIsConsumable.name} 1
 } else {
-  set ${isConsumable.name} 0
+  set ${varIsConsumable.name} 0
 }
 
 // if entity's size > player's size * 3
 // then turn collision off
-set ${tmp.name} ^&param1
-mul ${tmp.name} 3
-if (${size.name} > ${tmp.name}) {
+set ${varTmp.name} ^&param1
+mul ${varTmp.name} 3
+if (${varSize.name} > ${varTmp.name}) {
   ${Collision.off}
 } else {
   ${Collision.on}
@@ -173,17 +167,17 @@ if (${size.name} > ${tmp.name}) {
 
 // if entity's size < player's size / 5
 // then hide entity
-set ${tmp.name} ^&param1
-div ${tmp.name} 5
-if (${size.name} < ${tmp.name}) {
+set ${varTmp.name} ^&param1
+div ${varTmp.name} 5
+if (${varSize.name} < ${varTmp.name}) {
   objecthide self on
 }
       `
     })
     .on('collide_npc', () => {
       return `
-if (${isConsumable.name} == 1) {
-  sendevent grow player ~${size.name}~
+if (${varIsConsumable.name} == 1) {
+  sendevent grow player ~${varSize.name}~
   ${Collision.off}
   objecthide self on
   sendevent consumed self nop
@@ -191,19 +185,48 @@ if (${isConsumable.name} == 1) {
 `
     })
 
-  types.forEach((type) => {
-    entity.script?.on('collide_npc', () => {
-      return `
-if (£type == "${type}") {
-  if (${isConsumable.name} == 1) {
+  Object.values(EntityTypes).forEach((type) => {
+    entity.script
+      ?.on('initend', () => {
+        let tweaks: string[] = []
+
+        if (entityDefinitions[type].tweaks !== undefined) {
+          tweaks = Object.entries(entityDefinitions[type].tweaks).map(([key, value]) => {
+            if (Array.isArray(value)) {
+              return `tweak ${key} ${value.map((v) => `"${v}"`).join(' ')}`
+            } else {
+              return `tweak ${key} "${value}"`
+            }
+          })
+        }
+
+        return `
+if (${varType.name} == "${type}") {
+  loadanim wait         "${entityDefinitions[type].idleAnimation}"
+  loadanim talk_neutral "${entityDefinitions[type].talkAnimation}"
+  set ${varBaseHeight.name} ${entityDefinitions[type].baseHeight}
+
+  ${resize.invoke()}
+
+  use_mesh "${entityDefinitions[type].mesh}"
+  ${tweaks.join('\n')}
+}
+`
+      })
+      .on('collide_npc', () => {
+        return `
+if (${varType.name} == "${type}") {
+  if (${varIsConsumable.name} == 1) {
     ${entityDefinitions[type].consumedSound}
-  } else {
+  }
+  
+  if (${varIsConsumable.name} == 0) {
     if (^speaking == 0) {
-      // throttle bump sound playing by 2 seconds intervals
-      set ${tmp.name} ${lastSpokenAt.name}
-      inc ${tmp.name} 2
-      if (${tmp.name} < ^gameseconds) {
-        set ${lastSpokenAt.name} ^gameseconds
+      // throttle bump sounds by 2 seconds intervals
+      set ${varTmp.name} ${varLastSpokenAt.name}
+      inc ${varTmp.name} 2
+      if (${varTmp.name} < ^gameseconds) {
+        set ${varLastSpokenAt.name} ^gameseconds
       
         ${entityDefinitions[type].bumpSound}
       }
@@ -211,36 +234,7 @@ if (£type == "${type}") {
   }
 }
 `
-    })
-  })
-
-  entity.script?.on('restart', () => {
-    return `objecthide self off`
-  })
-
-  // ------------------
-
-  types.forEach((type) => {
-    let tweaks: string[] = []
-
-    if (entityDefinitions[type].tweaks !== undefined) {
-      tweaks = Object.entries(entityDefinitions[type].tweaks).map(([key, value]) => {
-        if (Array.isArray(value)) {
-          return `tweak ${key} ${value.map((v) => `"${v}"`).join(' ')}`
-        } else {
-          return `tweak ${key} "${value}"`
-        }
       })
-    }
-
-    entity.script?.on('initend', () => {
-      return `
-if (£type == "${type}") {
-  use_mesh "${entityDefinitions[type].mesh}"
-  ${tweaks.join('\n')}
-}
-`
-    })
   })
 
   return entity
@@ -251,13 +245,13 @@ if (£type == "${type}") {
 type createEntityProps = {
   position: Vector3
   /**
-   * centimeters
+   * real height of the model in centimeters
    */
-  height: number
+  size: number
   type: EntityTypes
 }
 
-export function createEntity({ position, height, type }: createEntityProps) {
+export function createEntity({ position, size, type }: createEntityProps) {
   const entity = new Entity({
     src: 'npc/entity',
     position,
@@ -266,15 +260,10 @@ export function createEntity({ position, height, type }: createEntityProps) {
 
   entity.withScript()
 
-  const size = new Variable('float', 'size', height) // real height of the model (centimeters)
+  const varSize = new Variable('float', 'size', size)
+  const varType = new Variable('string', 'type', type)
 
-  entity.script?.properties.push(size)
-
-  entity.script?.on('init', () => {
-    return `
-set £type "${type}"
-      `
-  })
+  entity.script?.properties.push(varSize, varType)
 
   return entity
 }
