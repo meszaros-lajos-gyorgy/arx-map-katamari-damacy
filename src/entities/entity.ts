@@ -165,6 +165,29 @@ set_speak_pitch ${varTmp.name}
 physical radius 30
 `
       })
+      .on('initend', () => {
+        let tweaks: string[] = []
+
+        if (entityDefinitions[type].tweaks !== undefined) {
+          tweaks = Object.entries(entityDefinitions[type].tweaks).map(([key, value]) => {
+            if (Array.isArray(value)) {
+              return `tweak ${key} ${value.map((v) => `"${v}"`).join(' ')}`
+            } else {
+              return `tweak ${key} "${value}"`
+            }
+          })
+        }
+
+        return `
+loadanim wait "${entityDefinitions[type].idleAnimation ?? 'gargoyle_wait'}"
+${entityDefinitions[type].talkAnimation ? `loadanim talk_neutral "${entityDefinitions[type].talkAnimation}"` : ''}
+set ${varBaseHeight.name} ${entityDefinitions[type].baseHeight}
+
+${resize.invoke()}
+
+${tweaks.join('\n')}
+`
+      })
       .on('restart', () => {
         return `objecthide self off`
       })
@@ -195,41 +218,6 @@ if (${varSize.name} < ${varTmp.name}) {
 }
       `
       })
-      .on('collide_npc', () => {
-        return `
-if (${varIsConsumable.name} == 1) {
-  sendevent grow player ~${varSize.name}~
-  ${Collision.off}
-  objecthide self on
-  sendevent consumed self nop
-}
-`
-      })
-
-    entity.script
-      ?.on('initend', () => {
-        let tweaks: string[] = []
-
-        if (entityDefinitions[type].tweaks !== undefined) {
-          tweaks = Object.entries(entityDefinitions[type].tweaks).map(([key, value]) => {
-            if (Array.isArray(value)) {
-              return `tweak ${key} ${value.map((v) => `"${v}"`).join(' ')}`
-            } else {
-              return `tweak ${key} "${value}"`
-            }
-          })
-        }
-
-        return `
-loadanim wait "${entityDefinitions[type].idleAnimation ?? 'gargoyle_wait'}"
-${entityDefinitions[type].talkAnimation ? `loadanim talk_neutral "${entityDefinitions[type].talkAnimation}"` : ''}
-set ${varBaseHeight.name} ${entityDefinitions[type].baseHeight}
-
-${resize.invoke()}
-
-${tweaks.join('\n')}
-`
-      })
       .on('load', () => {
         if (typeof entityDefinitions[type].mesh === 'string') {
           return `use_mesh "${entityDefinitions[type].mesh}"`
@@ -240,10 +228,12 @@ ${tweaks.join('\n')}
       .on('collide_npc', () => {
         return `
 if (${varIsConsumable.name} == 1) {
+  sendevent grow player ~${varSize.name}~
+  ${Collision.off}
+  objecthide self on
+  sendevent consumed self nop
   ${entityDefinitions[type].consumedSound}
-}
-
-if (${varIsConsumable.name} == 0) {
+} else {
   if (^speaking == 0) {
     // throttle bump sounds by 2 seconds intervals
     set ${varTmp.name} ${varLastSpokenAt.name}
