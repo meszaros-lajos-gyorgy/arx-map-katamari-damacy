@@ -3,7 +3,7 @@ import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
 import { createLight } from 'arx-level-generator/tools'
 import { randomBetween } from 'arx-level-generator/utils/random'
 
-export function createMap1(): ArxMap {
+export function createLevel01(): ArxMap {
   const map = new ArxMap()
 
   map.polygons.addThreeJsMesh(

@@ -4,7 +4,7 @@ import { pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/ra
 import { createEntity, createRootEntities, EntityTypes } from './entities/entity.js'
 import { createGameState } from './entities/gameState.js'
 import { enhancePlayer } from './entities/player.js'
-import { createMap1 } from './places/map1/map1.js'
+import { createLevel01 } from './places/levels/01/level01.js'
 
 // import { createMeasurementRoom } from './places/measurementRoom/measurementRoom.js'
 
@@ -20,8 +20,8 @@ await map.i18n.addFromFile('./i18n.json', settings)
 
 // -----------------------
 
-const map1 = createMap1()
-map.add(map1, true)
+const level01 = createLevel01()
+map.add(level01, true)
 
 // const measurementRoom = createMeasurementRoom()
 // map.add(measurementRoom, true)
