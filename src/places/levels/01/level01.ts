@@ -16,6 +16,15 @@ import {
   stoneHumanCityGround4,
 } from '@/textures.js'
 
+function createRandomPosition() {
+  const position = new Vector3(0, 0, 0)
+  while (isBetween(-150, 150, position.x) && isBetween(-150, 150, position.z)) {
+    position.x = randomBetween(-1500, 1500)
+    position.z = randomBetween(-1500, 1500)
+  }
+  return position
+}
+
 export function createLevel01(gameState: Entity): ArxMap {
   const map = new ArxMap()
 
@@ -69,15 +78,6 @@ export function createLevel01(gameState: Entity): ArxMap {
   }
 
   // -------------------------
-
-  function createRandomPosition() {
-    const position = new Vector3(0, 0, 0)
-    while (isBetween(-150, 150, position.x) && isBetween(-150, 150, position.z)) {
-      position.x = randomBetween(-1500, 1500)
-      position.z = randomBetween(-1500, 1500)
-    }
-    return position
-  }
 
   const npcDistribution = [
     { value: EntityTypes.Ylside, weight: 10 },
