@@ -39,7 +39,8 @@ type EntityDefinition = {
   animations: {
     idle?: string
     talk?: string
-    bump?: string
+    bumpFarFromConsumed?: string
+    bumpAlmostConsumed?: string
   }
   orientation?: Rotation
   /**
@@ -57,7 +58,8 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     animations: {
       idle: 'goblin_normal_wait',
       talk: 'goblin_normal_talk_neutral_headonly',
-      bump: 'goblin_fight_grunt',
+      bumpFarFromConsumed: 'human_misc_kick_rat',
+      bumpAlmostConsumed: 'goblin_fight_grunt',
     },
     displayName: 'goblin',
   },
@@ -75,7 +77,8 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     animations: {
       idle: 'goblinlord_normal_wait',
       talk: 'goblinlord_normal_talk_neutral_headonly',
-      bump: 'goblinlord_fight_grunt',
+      bumpFarFromConsumed: 'goblinlord_hit_short',
+      bumpAlmostConsumed: 'goblinlord_fight_grunt',
     },
     displayName: 'goblin lord',
   },
@@ -87,14 +90,15 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     animations: {
       idle: 'goblin_normal_wait',
       talk: 'goblin_normal_talk_neutral_headonly',
-      bump: 'goblin_fight_grunt',
+      bumpFarFromConsumed: 'human_misc_kick_rat',
+      bumpAlmostConsumed: 'goblin_fight_grunt',
     },
     displayName: 'goblin king',
   },
   [EntityTypes.Ylside]: {
     bumpSound: ylsideGingleSoundScript.play(),
     consumedSound: `
-    random 15 {
+    random 30 {
       ${ylsideDyingSoundScript.play()}
     } else {
       ${hasteStartSoundScript.play()}
@@ -109,7 +113,8 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     animations: {
       idle: 'ylside_wait',
       talk: 'human_talk_neutral_headonly',
-      bump: 'ylside_fight_grunt',
+      bumpFarFromConsumed: 'human_hit_short',
+      bumpAlmostConsumed: 'ylside_fight_grunt',
     },
     displayName: 'ylside',
   },
@@ -120,7 +125,8 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     mesh: carrotModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
     animations: {
-      bump: 'bee_grunt',
+      bumpFarFromConsumed: 'bee_grunt',
+      bumpAlmostConsumed: 'blackthing_gethit',
     },
     displayName: 'carrot',
   },
@@ -131,7 +137,8 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     mesh: leekModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
     animations: {
-      bump: 'bee_grunt',
+      bumpFarFromConsumed: 'bee_grunt',
+      bumpAlmostConsumed: 'blackthing_gethit',
     },
     displayName: 'leek',
   },
@@ -139,9 +146,10 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
 
 // -----------------
 
-const varSize = new Variable('float', 'size', 50) // real height of the model (centimeters)
+const varSize = new Variable('float', 'size', 0, true) // real height of the model (centimeters)
 
 const varIsConsumable = new Variable('bool', 'is_consumable', false)
+const varAlmostConsumable = new Variable('bool', 'almost_consumable', false)
 const varBaseHeight = new Variable('int', 'base_height', 180) // model height (centimeters)
 const varScaleFactor = new Variable('float', 'scale_factor', 0, true) // value to be passed to setscale command (percentage)
 const varTmp = new Variable('float', 'tmp', 0, true) // helper for calculations
@@ -184,6 +192,7 @@ setscale ${varScaleFactor.name}
       Invulnerability.on,
       Material.flesh,
       varIsConsumable,
+      varAlmostConsumable,
       varSize,
       varBaseHeight,
       varScaleFactor,
@@ -220,7 +229,8 @@ physical height 200
         return `
 loadanim wait "${entityDefinitions[type].animations.idle ?? 'gargoyle_wait'}"
 ${entityDefinitions[type].animations.talk ? `loadanim talk_neutral "${entityDefinitions[type].animations.talk}"` : ''}
-${entityDefinitions[type].animations.bump ? `loadanim hit "${entityDefinitions[type].animations.bump}"` : ''}
+${entityDefinitions[type].animations.bumpFarFromConsumed ? `loadanim hit_short "${entityDefinitions[type].animations.bumpFarFromConsumed}"` : ''}
+${entityDefinitions[type].animations.bumpAlmostConsumed ? `loadanim hit "${entityDefinitions[type].animations.bumpAlmostConsumed}"` : ''}
 
 set ${varBaseHeight.name} ${entityDefinitions[type].baseHeight}
 
@@ -235,9 +245,21 @@ ${tweaks.join('\n')}
       .on('size_threshold_change', () => {
         return `
 if (${varSize.name} < ^&param1) {
+  // entity is smaller than player -> consumable
   set ${varIsConsumable.name} 1
+  set ${varAlmostConsumable.name} 0
 } else {
+  // entity is larger than player -> not consumable
   set ${varIsConsumable.name} 0
+
+  // 90% of entity is smaller than player -> almost consumable
+  set ${varTmp.name} ${varSize.name}
+  mul ${varTmp.name} 0.9
+  if (${varTmp.name} < ^&param1) {
+    set ${varAlmostConsumable.name} 1
+  } else {
+    set ${varAlmostConsumable.name} 0
+  }
 }
 
 // if entity's size > player's size * 3
@@ -282,7 +304,11 @@ if (${varIsConsumable.name} == 1) {
     if (${varTmp.name} < ^gameseconds) {
       set ${varLastSpokenAt.name} ^gameseconds
 
-      ${entityDefinitions[type].animations.bump ? `playanim hit` : ''}
+      if (${varAlmostConsumable.name} == 1) {
+        ${entityDefinitions[type].animations.bumpFarFromConsumed ? `playanim hit` : ''}
+      } else {
+        ${entityDefinitions[type].animations.bumpAlmostConsumed ? `playanim hit_short` : ''}
+      }
       ${entityDefinitions[type].bumpSound ?? ''}
     }
   }
