@@ -46,6 +46,9 @@ type EntityDefinition = {
     bumpFarFromConsumed?: string
     bumpAlmostConsumed?: string
   }
+  /**
+   * if not specified, then a random rotation will be applied
+   */
   orientation?: Rotation
   /**
    * maximum of 2 words to describe the entity, like 'ylside' or 'goblin lord'
