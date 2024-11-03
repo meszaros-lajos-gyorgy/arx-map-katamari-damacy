@@ -100,7 +100,6 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
 
 // -----------------
 
-const varType = new Variable('string', 'type', '', true)
 const varSize = new Variable('float', 'size', 50) // real height of the model (centimeters)
 
 const varIsConsumable = new Variable('bool', 'is_consumable', false)
@@ -280,9 +279,8 @@ export function createEntity({ position, size, type }: createEntityProps) {
   entity.withScript()
 
   const varSize = new Variable('float', 'size', size)
-  const varType = new Variable('string', 'type', type)
 
-  entity.script?.properties.push(varSize, varType)
+  entity.script?.properties.push(varSize)
 
   return entity
 }
