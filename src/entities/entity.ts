@@ -40,6 +40,10 @@ type EntityDefinition = {
   talkAnimation?: string
   bumpAnimation?: string
   orientation?: Rotation
+  /**
+   * maximum of 2 words to describe the entity, like 'ylside' or 'goblin lord'
+   */
+  displayName: string
 }
 
 const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
@@ -51,6 +55,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     idleAnimation: 'goblin_normal_wait',
     talkAnimation: 'goblin_normal_talk_neutral_headonly',
     bumpAnimation: 'goblin_fight_grunt',
+    displayName: 'goblin',
   },
   [EntityTypes.GoblinLord]: {
     bumpSound: 'speak [goblinlord_warning]',
@@ -66,6 +71,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     idleAnimation: 'goblinlord_normal_wait',
     talkAnimation: 'goblinlord_normal_talk_neutral_headonly',
     bumpAnimation: 'goblinlord_fight_grunt',
+    displayName: 'goblin lord',
   },
   [EntityTypes.GoblinKing]: {
     bumpSound: 'speak [alotar_irritated]',
@@ -75,6 +81,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     idleAnimation: 'goblin_normal_wait',
     talkAnimation: 'goblin_normal_talk_neutral_headonly',
     bumpAnimation: 'goblin_fight_grunt',
+    displayName: 'goblin king',
   },
   [EntityTypes.Ylside]: {
     bumpSound: ylsideGingleSoundScript.play(),
@@ -94,6 +101,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     idleAnimation: 'ylside_wait',
     talkAnimation: 'human_talk_neutral_headonly',
     bumpAnimation: 'ylside_fight_grunt',
+    displayName: 'ylside',
   },
   [EntityTypes.Carrot]: {
     bumpSound: metalOnWaterSoundScript.play(),
@@ -102,6 +110,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     mesh: carrotModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
     bumpAnimation: 'bee_grunt',
+    displayName: 'carrot',
   },
   [EntityTypes.Leek]: {
     bumpSound: metalOnWaterSoundScript.play(),
@@ -110,6 +119,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     mesh: leekModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
     bumpAnimation: 'bee_grunt',
+    displayName: 'leek',
   },
 }
 
@@ -245,7 +255,7 @@ if (${varSize.name} < ${varTmp.name}) {
       .on('collide_npc', () => {
         return `
 if (${varIsConsumable.name} == 1) {
-  sendevent grow player ~${varSize.name}~
+  sendevent grow player "~${varSize.name}~ ~${entityDefinitions[type].displayName}~"
   ${Collision.off}
   objecthide self on
   sendevent consumed self nop

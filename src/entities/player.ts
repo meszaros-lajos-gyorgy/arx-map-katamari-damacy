@@ -20,7 +20,7 @@ div ${scaleFactor.name} ${baseHeight.name}
 mul ${scaleFactor.name} 100
 
 setscale ${scaleFactor.name}
-sendevent player_resized ${gameState.ref} ~${size.name}~
+sendevent player_resized ${gameState.ref} "~${size.name}~"
 `
     },
     'gosub',
@@ -41,6 +41,7 @@ div ${tmp.name} 50
 inc ${size.name} ${tmp.name}
 
 ${resize.invoke()}
+sendevent consumed ${gameState.ref} "~^&param1~ ~^$param2~ ~^$param3~"
 `
     })
 }

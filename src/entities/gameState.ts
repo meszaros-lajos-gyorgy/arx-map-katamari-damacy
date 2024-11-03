@@ -63,11 +63,41 @@ set ${hudLine1.name} "player size: ~§wholepart~.~§decimaldigit1~~§decimaldigi
 ${redraw.invoke()}
       `
     })
+    .on('consumed', () => {
+      return `
+// display size of consumed entity rounded to 2 decimals
+
+// wholepart = (int)size
+set §wholepart ^&param1
+
+// decimaldigit1 = (int)((size - wholepart) * 10)
+set ${tmp.name} ^&param1
+dec ${tmp.name} §wholepart
+mul ${tmp.name} 10
+set §decimaldigit1 ${tmp.name}
+
+// decimaldigit2 = (int)(((size - wholepart) * 10 - decimaldigit1) * 10)
+set ${tmp.name} ^&param1
+dec ${tmp.name} §wholepart
+mul ${tmp.name} 10
+dec ${tmp.name} §decimaldigit1
+mul ${tmp.name} 10
+set §decimaldigit2 ${tmp.name}
+
+if (^$param3 != '') {
+  set ${hudLine2.name} "last consumed: ~^$param2~ ~^$param3~ (~§wholepart~.~§decimaldigit1~~§decimaldigit2~cm)"
+} else {
+  set ${hudLine2.name} "last consumed: ~^$param2~ (~§wholepart~.~§decimaldigit1~~§decimaldigit2~cm)"
+}
+
+${redraw.invoke()}
+`
+    })
     .on('victory', () => {
       return `
-set ${hudLine2.name} [victory]
 ${PlayerControls.off}
 
+set ${hudLine3.name} "[victory]"
 ${redraw.invoke()}
       `
     })
