@@ -26,8 +26,14 @@ const metalOnWaterSound = new Audio({
   isNative: true,
 })
 
+const metalOnClothSound = new Audio({
+  filename: 'metal_on_cloth_1.wav',
+  isNative: true,
+})
+
 export const hasteStartSoundScript = new Sound(hasteStartSound.filename, SoundFlags.VaryPitch)
 export const eatSoundScript = new Sound(eatSound.filename, SoundFlags.VaryPitch)
 export const ylsideDyingSoundScript = new Sound(ylsideDyingSound.filename, SoundFlags.VaryPitch)
 export const ylsideGingleSoundScript = new Sound(ylsideGingleSound.filename, SoundFlags.VaryPitch)
 export const metalOnWaterSoundScript = new Sound(metalOnWaterSound.filename, SoundFlags.VaryPitch)
+export const metalOnClothSoundScript = new Sound(metalOnClothSound.filename, SoundFlags.VaryPitch)

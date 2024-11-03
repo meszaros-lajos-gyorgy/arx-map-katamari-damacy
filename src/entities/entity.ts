@@ -14,6 +14,7 @@ import { carrotModel, leekModel } from '@/models.js'
 import {
   eatSoundScript,
   hasteStartSoundScript,
+  metalOnClothSoundScript,
   metalOnWaterSoundScript,
   ylsideDyingSoundScript,
   ylsideGingleSoundScript,
@@ -31,8 +32,11 @@ export enum EntityTypes {
 }
 
 type EntityDefinition = {
-  bumpSound?: string
-  consumedSound: string
+  sounds: {
+    bumpFarFromConsumed?: string
+    bumpAlmostConsumed?: string
+    consumed?: string
+  }
   baseHeight: number
   mesh: string | EntityModel
   tweaks?: Record<string, string | string[]>
@@ -51,8 +55,11 @@ type EntityDefinition = {
 
 const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
   [EntityTypes.Goblin]: {
-    bumpSound: 'speak [goblin_generic]',
-    consumedSound: 'speak [goblin_ouch]',
+    sounds: {
+      bumpFarFromConsumed: 'speak [goblin_generic]',
+      bumpAlmostConsumed: 'speak [goblin_help]',
+      consumed: 'speak [goblin_ouch]',
+    },
     baseHeight: 160,
     mesh: 'goblin_base/goblin_base.teo',
     animations: {
@@ -64,14 +71,17 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     displayName: 'goblin',
   },
   [EntityTypes.GoblinLord]: {
-    bumpSound: 'speak [goblinlord_warning]',
-    consumedSound: `
+    sounds: {
+      bumpFarFromConsumed: 'speak [goblinlord_warning]',
+      bumpAlmostConsumed: 'speak [goblinlord_mad]',
+      consumed: `
     random 50 {
       speak [goblinlord_ouch]
     } else {
       speak [goblinlord_dying]
     }
 `,
+    },
     baseHeight: 210,
     mesh: 'goblin_lord/goblin_lord.teo',
     animations: {
@@ -83,8 +93,11 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     displayName: 'goblin lord',
   },
   [EntityTypes.GoblinKing]: {
-    bumpSound: 'speak [alotar_irritated]',
-    consumedSound: 'speak [alotar_pain]',
+    sounds: {
+      bumpFarFromConsumed: 'speak [alotar_favour]',
+      bumpAlmostConsumed: 'speak [alotar_irritated]',
+      consumed: 'speak [alotar_pain]',
+    },
     baseHeight: 170,
     mesh: 'goblin_king/goblin_king.teo',
     animations: {
@@ -96,14 +109,17 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     displayName: 'goblin king',
   },
   [EntityTypes.Ylside]: {
-    bumpSound: ylsideGingleSoundScript.play(),
-    consumedSound: `
+    sounds: {
+      bumpFarFromConsumed: 'speak [ylside_password]',
+      bumpAlmostConsumed: ylsideGingleSoundScript.play(),
+      consumed: `
     random 30 {
       ${ylsideDyingSoundScript.play()}
     } else {
       ${hasteStartSoundScript.play()}
     }
 `,
+    },
     baseHeight: 180,
     mesh: 'human_base/human_base.teo',
     tweaks: {
@@ -119,8 +135,11 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     displayName: 'ylside',
   },
   [EntityTypes.Carrot]: {
-    bumpSound: metalOnWaterSoundScript.play(),
-    consumedSound: eatSoundScript.play(),
+    sounds: {
+      bumpFarFromConsumed: metalOnClothSoundScript.play(),
+      bumpAlmostConsumed: metalOnWaterSoundScript.play(),
+      consumed: eatSoundScript.play(),
+    },
     baseHeight: 52,
     mesh: carrotModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
@@ -131,8 +150,11 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     displayName: 'carrot',
   },
   [EntityTypes.Leek]: {
-    bumpSound: metalOnWaterSoundScript.play(),
-    consumedSound: eatSoundScript.play(),
+    sounds: {
+      bumpFarFromConsumed: metalOnClothSoundScript.play(),
+      bumpAlmostConsumed: metalOnWaterSoundScript.play(),
+      consumed: eatSoundScript.play(),
+    },
     baseHeight: 75,
     mesh: leekModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
@@ -295,7 +317,7 @@ if (${varIsConsumable.name} == 1) {
   ${Collision.off}
   objecthide self on
   sendevent consumed self nop
-  ${entityDefinitions[type].consumedSound}
+  ${entityDefinitions[type].sounds.consumed ?? ''}
 } else {
   if (^speaking == 0) {
     // throttle bump sounds by 2 seconds intervals
@@ -305,11 +327,12 @@ if (${varIsConsumable.name} == 1) {
       set ${varLastSpokenAt.name} ^gameseconds
 
       if (${varAlmostConsumable.name} == 1) {
-        ${entityDefinitions[type].animations.bumpFarFromConsumed ? `playanim hit` : ''}
+        ${entityDefinitions[type].animations.bumpAlmostConsumed ? `playanim hit` : ''}
+        ${entityDefinitions[type].sounds.bumpAlmostConsumed ?? entityDefinitions[type].sounds.bumpFarFromConsumed ?? ''}
       } else {
-        ${entityDefinitions[type].animations.bumpAlmostConsumed ? `playanim hit_short` : ''}
+        ${entityDefinitions[type].animations.bumpFarFromConsumed ? `playanim hit_short` : ''}
+        ${entityDefinitions[type].sounds.bumpFarFromConsumed ?? ''}
       }
-      ${entityDefinitions[type].bumpSound ?? ''}
     }
   }
 }
