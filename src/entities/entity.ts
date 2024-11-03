@@ -11,7 +11,13 @@ import {
 import { randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils } from 'three'
 import { carrotModel, leekModel } from '@/models.js'
-import { eatSoundScript, hasteStartSoundScript, ylsideDyingSoundScript } from '@/sounds.js'
+import {
+  eatSoundScript,
+  hasteStartSoundScript,
+  metalOnWaterSoundScript,
+  ylsideDyingSoundScript,
+  ylsideGingleSoundScript,
+} from '@/sounds.js'
 
 // -----------------
 
@@ -32,6 +38,7 @@ type EntityDefinition = {
   tweaks?: Record<string, string | string[]>
   idleAnimation?: string
   talkAnimation?: string
+  bumpAnimation?: string
   orientation?: Rotation
 }
 
@@ -43,6 +50,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     mesh: 'goblin_base/goblin_base.teo',
     idleAnimation: 'goblin_normal_wait',
     talkAnimation: 'goblin_normal_talk_neutral_headonly',
+    bumpAnimation: 'goblin_fight_grunt',
   },
   [EntityTypes.GoblinLord]: {
     bumpSound: 'speak [goblinlord_warning]',
@@ -57,6 +65,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     mesh: 'goblin_lord/goblin_lord.teo',
     idleAnimation: 'goblinlord_normal_wait',
     talkAnimation: 'goblinlord_normal_talk_neutral_headonly',
+    bumpAnimation: 'goblinlord_fight_grunt',
   },
   [EntityTypes.GoblinKing]: {
     bumpSound: 'speak [alotar_irritated]',
@@ -65,11 +74,12 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     mesh: 'goblin_king/goblin_king.teo',
     idleAnimation: 'goblin_normal_wait',
     talkAnimation: 'goblin_normal_talk_neutral_headonly',
+    bumpAnimation: 'goblin_fight_grunt',
   },
   [EntityTypes.Ylside]: {
-    bumpSound: 'speak [ylside_password]',
+    bumpSound: ylsideGingleSoundScript.play(),
     consumedSound: `
-    random 10 {
+    random 15 {
       ${ylsideDyingSoundScript.play()}
     } else {
       ${hasteStartSoundScript.play()}
@@ -83,18 +93,23 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     },
     idleAnimation: 'ylside_wait',
     talkAnimation: 'human_talk_neutral_headonly',
+    bumpAnimation: 'ylside_fight_grunt',
   },
   [EntityTypes.Carrot]: {
+    bumpSound: metalOnWaterSoundScript.play(),
     consumedSound: eatSoundScript.play(),
     baseHeight: 52,
     mesh: carrotModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
+    bumpAnimation: 'bee_grunt',
   },
   [EntityTypes.Leek]: {
+    bumpSound: metalOnWaterSoundScript.play(),
     consumedSound: eatSoundScript.play(),
     baseHeight: 75,
     mesh: leekModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
+    bumpAnimation: 'bee_grunt',
   },
 }
 
@@ -161,7 +176,8 @@ div ${varTmp.name} 100
 inc ${varTmp.name} 0.8
 set_speak_pitch ${varTmp.name}
 
-physical radius 30
+physical radius 25
+physical height 200
 `
       })
       .on('initend', () => {
@@ -180,6 +196,8 @@ physical radius 30
         return `
 loadanim wait "${entityDefinitions[type].idleAnimation ?? 'gargoyle_wait'}"
 ${entityDefinitions[type].talkAnimation ? `loadanim talk_neutral "${entityDefinitions[type].talkAnimation}"` : ''}
+${entityDefinitions[type].bumpAnimation ? `loadanim hit "${entityDefinitions[type].bumpAnimation}"` : ''}
+
 set ${varBaseHeight.name} ${entityDefinitions[type].baseHeight}
 
 ${resize.invoke()}
@@ -240,6 +258,7 @@ if (${varIsConsumable.name} == 1) {
     if (${varTmp.name} < ^gameseconds) {
       set ${varLastSpokenAt.name} ^gameseconds
 
+      ${entityDefinitions[type].bumpAnimation ? `playanim hit` : ''}
       ${entityDefinitions[type].bumpSound ?? ''}
     }
   }

@@ -16,6 +16,18 @@ const ylsideDyingSound = new Audio({
   isNative: true,
 })
 
+const ylsideGingleSound = new Audio({
+  filename: 'ylside_gingle.wav',
+  isNative: true,
+})
+
+const metalOnWaterSound = new Audio({
+  filename: 'metal_on_water_1.wav',
+  isNative: true,
+})
+
 export const hasteStartSoundScript = new Sound(hasteStartSound.filename, SoundFlags.VaryPitch)
 export const eatSoundScript = new Sound(eatSound.filename, SoundFlags.VaryPitch)
 export const ylsideDyingSoundScript = new Sound(ylsideDyingSound.filename, SoundFlags.VaryPitch)
+export const ylsideGingleSoundScript = new Sound(ylsideGingleSound.filename, SoundFlags.VaryPitch)
+export const metalOnWaterSoundScript = new Sound(metalOnWaterSound.filename, SoundFlags.VaryPitch)
