@@ -36,9 +36,11 @@ type EntityDefinition = {
   baseHeight: number
   mesh: string | EntityModel
   tweaks?: Record<string, string | string[]>
-  idleAnimation?: string
-  talkAnimation?: string
-  bumpAnimation?: string
+  animations: {
+    idle?: string
+    talk?: string
+    bump?: string
+  }
   orientation?: Rotation
   /**
    * maximum of 2 words to describe the entity, like 'ylside' or 'goblin lord'
@@ -52,9 +54,11 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     consumedSound: 'speak [goblin_ouch]',
     baseHeight: 160,
     mesh: 'goblin_base/goblin_base.teo',
-    idleAnimation: 'goblin_normal_wait',
-    talkAnimation: 'goblin_normal_talk_neutral_headonly',
-    bumpAnimation: 'goblin_fight_grunt',
+    animations: {
+      idle: 'goblin_normal_wait',
+      talk: 'goblin_normal_talk_neutral_headonly',
+      bump: 'goblin_fight_grunt',
+    },
     displayName: 'goblin',
   },
   [EntityTypes.GoblinLord]: {
@@ -68,9 +72,11 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
 `,
     baseHeight: 210,
     mesh: 'goblin_lord/goblin_lord.teo',
-    idleAnimation: 'goblinlord_normal_wait',
-    talkAnimation: 'goblinlord_normal_talk_neutral_headonly',
-    bumpAnimation: 'goblinlord_fight_grunt',
+    animations: {
+      idle: 'goblinlord_normal_wait',
+      talk: 'goblinlord_normal_talk_neutral_headonly',
+      bump: 'goblinlord_fight_grunt',
+    },
     displayName: 'goblin lord',
   },
   [EntityTypes.GoblinKing]: {
@@ -78,9 +84,11 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     consumedSound: 'speak [alotar_pain]',
     baseHeight: 170,
     mesh: 'goblin_king/goblin_king.teo',
-    idleAnimation: 'goblin_normal_wait',
-    talkAnimation: 'goblin_normal_talk_neutral_headonly',
-    bumpAnimation: 'goblin_fight_grunt',
+    animations: {
+      idle: 'goblin_normal_wait',
+      talk: 'goblin_normal_talk_neutral_headonly',
+      bump: 'goblin_fight_grunt',
+    },
     displayName: 'goblin king',
   },
   [EntityTypes.Ylside]: {
@@ -98,9 +106,11 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       lower: 'human_ylside',
       skin: ['npc_human_base_hero_head', 'npc_human_ylside_head'],
     },
-    idleAnimation: 'ylside_wait',
-    talkAnimation: 'human_talk_neutral_headonly',
-    bumpAnimation: 'ylside_fight_grunt',
+    animations: {
+      idle: 'ylside_wait',
+      talk: 'human_talk_neutral_headonly',
+      bump: 'ylside_fight_grunt',
+    },
     displayName: 'ylside',
   },
   [EntityTypes.Carrot]: {
@@ -109,7 +119,9 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     baseHeight: 52,
     mesh: carrotModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
-    bumpAnimation: 'bee_grunt',
+    animations: {
+      bump: 'bee_grunt',
+    },
     displayName: 'carrot',
   },
   [EntityTypes.Leek]: {
@@ -118,7 +130,9 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     baseHeight: 75,
     mesh: leekModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
-    bumpAnimation: 'bee_grunt',
+    animations: {
+      bump: 'bee_grunt',
+    },
     displayName: 'leek',
   },
 }
@@ -204,9 +218,9 @@ physical height 200
         }
 
         return `
-loadanim wait "${entityDefinitions[type].idleAnimation ?? 'gargoyle_wait'}"
-${entityDefinitions[type].talkAnimation ? `loadanim talk_neutral "${entityDefinitions[type].talkAnimation}"` : ''}
-${entityDefinitions[type].bumpAnimation ? `loadanim hit "${entityDefinitions[type].bumpAnimation}"` : ''}
+loadanim wait "${entityDefinitions[type].animations.idle ?? 'gargoyle_wait'}"
+${entityDefinitions[type].animations.talk ? `loadanim talk_neutral "${entityDefinitions[type].animations.talk}"` : ''}
+${entityDefinitions[type].animations.bump ? `loadanim hit "${entityDefinitions[type].animations.bump}"` : ''}
 
 set ${varBaseHeight.name} ${entityDefinitions[type].baseHeight}
 
@@ -268,7 +282,7 @@ if (${varIsConsumable.name} == 1) {
     if (${varTmp.name} < ^gameseconds) {
       set ${varLastSpokenAt.name} ^gameseconds
 
-      ${entityDefinitions[type].bumpAnimation ? `playanim hit` : ''}
+      ${entityDefinitions[type].animations.bump ? `playanim hit` : ''}
       ${entityDefinitions[type].bumpSound ?? ''}
     }
   }
