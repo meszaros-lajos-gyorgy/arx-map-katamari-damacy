@@ -175,7 +175,7 @@ const varSize = new Variable('float', 'size', 0, true) // real height of the mod
 
 const varIsConsumable = new Variable('bool', 'is_consumable', false)
 const varAlmostConsumable = new Variable('bool', 'almost_consumable', false)
-const varBaseHeight = new Variable('int', 'base_height', 180) // model height (centimeters)
+const varBaseHeight = new Variable('int', 'base_height', 0, true) // model height (centimeters)
 const varScaleFactor = new Variable('float', 'scale_factor', 0, true) // value to be passed to setscale command (percentage)
 const varTmp = new Variable('float', 'tmp', 0, true) // helper for calculations
 const varLastSpokenAt = new Variable('int', 'last_spoken_at', 0, true) // (seconds)
@@ -197,7 +197,7 @@ export function createRootEntities(): Entity[] {
       'resize',
       () => {
         return `
-// scaleFactor % = (playerSize cm / playerBaseHeight cm) * 100
+// scaleFactor % = (size cm / baseHeight cm) * 100
 set ${varScaleFactor.name} ${varSize.name}
 div ${varScaleFactor.name} ${varBaseHeight.name}
 mul ${varScaleFactor.name} 100
@@ -264,8 +264,11 @@ ${resize.invoke()}
 ${tweaks.join('\n')}
 `
       })
-      .on('restart', () => {
-        return `objecthide self off`
+      .on('reset', () => {
+        return `
+// TODO: reset variables
+objecthide self off
+`
       })
       .on('size_threshold_change', () => {
         return `

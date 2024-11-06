@@ -28,8 +28,8 @@ map.entities.push(...createRootEntities())
 
 // -----------------------
 
-const level01 = createLevel01(gameState)
-level01.move(new Vector3(5000, 0, 5000))
+const level01 = createLevel01(gameState, settings)
+level01.move(new Vector3(8000, 0, 8000))
 map.add(level01, true)
 
 // const measurementRoom = createMeasurementRoom()

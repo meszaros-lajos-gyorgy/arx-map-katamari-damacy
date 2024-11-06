@@ -36,8 +36,13 @@ ${loop(1000)} ${redraw.invoke()}
       `
     })
     .on('player_resized', () => {
+      // ^&param1 = new size of player, ^&param2 = old size of player
       return `
-sendevent -g consumables size_threshold_change ~^&param1~
+sendevent -g consumables size_threshold_change "~^&param1~"
+
+set ${tmp.name} ^&param2
+dec ${tmp.name} ^&param1
+sendevent -g sky rise "~${tmp.name}~"
 
 // display scale rounded to 2 decimals
 

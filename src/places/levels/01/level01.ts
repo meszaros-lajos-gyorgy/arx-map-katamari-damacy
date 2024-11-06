@@ -1,9 +1,20 @@
-import { ArxMap, Color, Entity, QUADIFY, Rotation, SHADING_SMOOTH, Vector3 } from 'arx-level-generator'
+import {
+  ArxMap,
+  Color,
+  Entity,
+  QUADIFY,
+  Rotation,
+  Settings,
+  SHADING_SMOOTH,
+  Texture,
+  Vector3,
+} from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
 import { createLight, createZone } from 'arx-level-generator/tools'
 import { pickRandom, pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
-import { Vector2 } from 'three'
+import { MathUtils, Vector2 } from 'three'
 import { createEntity, EntityTypes } from '@/entities/entity.js'
+import { createSun } from '@/entities/sun.js'
 import { sfxPlayerAppears4SoundScript } from '@/sounds.js'
 import {
   soilHumanSoil1,
@@ -27,7 +38,7 @@ function createRandomPosition(exclusionsAt: Vector3[]) {
   return position
 }
 
-export function createLevel01(gameState: Entity): ArxMap {
+export function createLevel01(gameState: Entity, settings: Settings): ArxMap {
   const map = new ArxMap()
 
   map.polygons.addThreeJsMesh(
@@ -67,13 +78,19 @@ export function createLevel01(gameState: Entity): ArxMap {
 
   // -------------------------
 
+  const eveningSky = Color.fromCSS('#582402')
+
+  const lightColor = eveningSky.clone().lighten(40)
+
   for (let x = 0; x < 8; x++) {
     for (let z = 0; z < 8; z++) {
+      const maxLightIntensity = 1
       map.lights.push(
         createLight({
           position: new Vector3(-2000 + 250 + x * 500, -500, -2000 + 250 + z * 500),
           radius: 900,
-          intensity: 1 - ((x + z) / 2) * (1 / 8),
+          intensity: ((x + z) / 2) * (maxLightIntensity / 8),
+          color: lightColor,
         }),
       )
     }
@@ -84,7 +101,8 @@ export function createLevel01(gameState: Entity): ArxMap {
   const spawnZone1 = createZone({
     name: 'level01_spawn1',
     size: new Vector3(100, 100, 100),
-    backgroundColor: Color.fromCSS('#FF8866'),
+    backgroundColor: eveningSky,
+    drawDistance: 7000,
   })
   map.zones.push(spawnZone1)
 
@@ -173,6 +191,92 @@ if (§tmp == ${index}) {
   .join('\n')}
 `
   })
+
+  // -------------------------
+
+  const sunAt = new Vector3(1500, 70, 3000)
+
+  const platformUnderTheSun = createPlaneMesh({
+    size: 100,
+    texture: Texture.alpha,
+  })
+  platformUnderTheSun.position.x = sunAt.x
+  platformUnderTheSun.position.y = sunAt.y + 1000
+  platformUnderTheSun.position.z = sunAt.z
+  map.polygons.addThreeJsMesh(platformUnderTheSun)
+
+  const sun = createSun({
+    size: 200,
+    position: sunAt,
+    orientation: new Rotation(0, MathUtils.degToRad(90), 0),
+  })
+  map.entities.push(sun)
+
+  // -------------------------
+
+  if (settings.mode === 'production') {
+    for (let i = 0; i < 250; i++) {
+      const starAt = new Vector3(randomBetween(-4000, 4000), randomBetween(1000, -3500), randomBetween(-2800, -4000))
+      const size = randomBetween(1, 2 + -starAt.z / 1000)
+
+      const platformUnderTheStar = createPlaneMesh({
+        size: 10,
+        texture: Texture.alpha,
+      })
+      platformUnderTheStar.position.x = starAt.x
+      platformUnderTheStar.position.y = starAt.y + 1000
+      platformUnderTheStar.position.z = starAt.z
+      map.polygons.addThreeJsMesh(platformUnderTheStar, { tryToQuadify: QUADIFY })
+
+      const star = createSun({
+        size,
+        position: starAt,
+      })
+      map.entities.push(star)
+    }
+
+    for (let i = 0; i < 100; i++) {
+      const starAt = new Vector3(randomBetween(-2800, -4000), randomBetween(1000, -3500), randomBetween(-5000, 2000))
+      const size = 2 + -(starAt.z - 2000) / 1000
+
+      const platformUnderTheStar = createPlaneMesh({
+        size: 10,
+        texture: Texture.alpha,
+      })
+      platformUnderTheStar.position.x = starAt.x
+      platformUnderTheStar.position.y = starAt.y + 1000
+      platformUnderTheStar.position.z = starAt.z
+      map.polygons.addThreeJsMesh(platformUnderTheStar, { tryToQuadify: QUADIFY })
+
+      const star = createSun({
+        size,
+        position: starAt,
+      })
+      map.entities.push(star)
+    }
+
+    for (let i = 0; i < 100; i++) {
+      const starAt = new Vector3(randomBetween(2800, 4000), randomBetween(1000, -3000), randomBetween(-4000, 0))
+      const size = 1 + -starAt.z / 1000
+
+      const platformUnderTheStar = createPlaneMesh({
+        size: 10,
+        texture: Texture.alpha,
+      })
+      platformUnderTheStar.position.x = starAt.x
+      platformUnderTheStar.position.y = starAt.y + 1000
+      platformUnderTheStar.position.z = starAt.z
+      map.polygons.addThreeJsMesh(platformUnderTheStar, { tryToQuadify: QUADIFY })
+
+      const star = createSun({
+        size,
+        position: starAt,
+      })
+      map.entities.push(star)
+    }
+  }
+
+  // -------------------------
 
   return map
 }
