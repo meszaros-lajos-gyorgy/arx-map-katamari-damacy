@@ -1,4 +1,5 @@
 import { ArxMap, HudElements, Settings, Vector3 } from 'arx-level-generator'
+import { useDelay } from 'arx-level-generator/scripting/hooks'
 import { createRootEntities } from './entities/entity.js'
 import { createGameState } from './entities/gameState.js'
 import { enhancePlayer } from './entities/player.js'
@@ -9,7 +10,7 @@ import { createLevel01 } from './places/levels/01/level01.js'
 const settings = new Settings()
 const map = new ArxMap()
 
-map.config.offset = new Vector3(4000, 0, 4000)
+map.config.offset = new Vector3(2000, 0, 2000)
 
 map.hud.hide('all')
 
@@ -28,10 +29,16 @@ map.entities.push(...createRootEntities())
 // -----------------------
 
 const level01 = createLevel01(gameState)
+level01.move(new Vector3(5000, 0, 5000))
 map.add(level01, true)
 
 // const measurementRoom = createMeasurementRoom()
 // map.add(measurementRoom, true)
+
+gameState.script?.on('init', () => {
+  const { delay } = useDelay()
+  return `${delay(2000)} sendevent start_level01 self nop`
+})
 
 // -----------------------
 

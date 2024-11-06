@@ -1,6 +1,6 @@
-import { ArxMap, Entity, QUADIFY, SHADING_SMOOTH, Vector3 } from 'arx-level-generator'
+import { ArxMap, Color, Entity, QUADIFY, Rotation, SHADING_SMOOTH, Vector3 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
-import { createLight } from 'arx-level-generator/tools'
+import { createLight, createZone } from 'arx-level-generator/tools'
 import { isBetween } from 'arx-level-generator/utils'
 import { pickRandom, pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
 import { Vector2 } from 'three'
@@ -19,8 +19,8 @@ import {
 function createRandomPosition() {
   const position = new Vector3(0, 0, 0)
   while (isBetween(-150, 150, position.x) && isBetween(-150, 150, position.z)) {
-    position.x = randomBetween(-1500, 1500)
-    position.z = randomBetween(-1500, 1500)
+    position.x = randomBetween(-1800, 1800)
+    position.z = randomBetween(-1800, 1800)
   }
   return position
 }
@@ -70,8 +70,8 @@ export function createLevel01(gameState: Entity): ArxMap {
       map.lights.push(
         createLight({
           position: new Vector3(-2000 + 250 + x * 500, -500, -2000 + 250 + z * 500),
-          radius: 1000,
-          intensity: randomBetween(0.5, 1),
+          radius: 900,
+          intensity: 1 - ((x + z) / 2) * (1 / 8),
         }),
       )
     }
@@ -138,6 +138,25 @@ export function createLevel01(gameState: Entity): ArxMap {
   map.entities.push(boss)
 
   // -------------------------
+
+  // TODO: add more spawns
+
+  const spawnZone1 = createZone({
+    name: 'level01_spawn1',
+    size: new Vector3(100, 100, 100),
+    backgroundColor: Color.fromCSS('#FF8866'),
+  })
+  map.zones.push(spawnZone1)
+
+  const spawnpoint1 = Entity.marker
+  map.entities.push(spawnpoint1)
+
+  const spawnpoints: Entity[] = [spawnpoint1]
+
+  // randomly select a spawn using scripts
+  gameState.script?.on('start_level01', () => {
+    return `teleport -p ${spawnpoints[0].ref}`
+  })
 
   return map
 }
