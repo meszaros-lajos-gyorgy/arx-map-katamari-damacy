@@ -1,7 +1,6 @@
 import { ArxMap, Color, Entity, QUADIFY, Rotation, SHADING_SMOOTH, Vector3 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
 import { createLight, createZone } from 'arx-level-generator/tools'
-import { isBetween } from 'arx-level-generator/utils'
 import { pickRandom, pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
 import { Vector2 } from 'three'
 import { createEntity, EntityTypes } from '@/entities/entity.js'
@@ -16,12 +15,14 @@ import {
   stoneHumanCityGround4,
 } from '@/textures.js'
 
-function createRandomPosition() {
+function createRandomPosition(exclusionsAt: Vector3[]) {
   const position = new Vector3(0, 0, 0)
-  while (isBetween(-150, 150, position.x) && isBetween(-150, 150, position.z)) {
+
+  do {
     position.x = randomBetween(-1800, 1800)
     position.z = randomBetween(-1800, 1800)
-  }
+  } while (position.distanceTo(exclusionsAt[0]) <= 150)
+
   return position
 }
 
@@ -79,6 +80,22 @@ export function createLevel01(gameState: Entity): ArxMap {
 
   // -------------------------
 
+  const spawnZone1 = createZone({
+    name: 'level01_spawn1',
+    size: new Vector3(100, 100, 100),
+    backgroundColor: Color.fromCSS('#FF8866'),
+  })
+  map.zones.push(spawnZone1)
+
+  // TODO: add more spawns
+  const spawn1 = Entity.marker
+  map.entities.push(spawn1)
+
+  const spawns: Entity[] = [spawn1]
+  const spawnPoints = spawns.map(({ position }) => position)
+
+  // -------------------------
+
   const npcDistribution = [
     { value: EntityTypes.Ylside, weight: 10 },
     { value: EntityTypes.Carrot, weight: 20 },
@@ -95,28 +112,28 @@ export function createLevel01(gameState: Entity): ArxMap {
   map.entities.push(
     ...smalls.map(({ value }) => {
       return createEntity({
-        position: createRandomPosition(),
+        position: createRandomPosition(spawnPoints),
         size: randomBetween(20, 50),
         type: value,
       })
     }),
     ...mediums.map(({ value }) => {
       return createEntity({
-        position: createRandomPosition(),
+        position: createRandomPosition(spawnPoints),
         size: randomBetween(40, 125),
         type: value,
       })
     }),
     ...larges.map(({ value }) => {
       return createEntity({
-        position: createRandomPosition(),
+        position: createRandomPosition(spawnPoints),
         size: randomBetween(100, 250),
         type: value,
       })
     }),
     ...extraLarges.map(({ value }) => {
       return createEntity({
-        position: createRandomPosition(),
+        position: createRandomPosition(spawnPoints),
         size: randomBetween(200, 300),
         type: value,
       })
@@ -126,7 +143,7 @@ export function createLevel01(gameState: Entity): ArxMap {
   // -------------------------
 
   const boss = createEntity({
-    position: createRandomPosition(),
+    position: createRandomPosition(spawnPoints),
     size: 300,
     type: EntityTypes.GoblinKing,
   })
@@ -139,23 +156,20 @@ export function createLevel01(gameState: Entity): ArxMap {
 
   // -------------------------
 
-  // TODO: add more spawns
-
-  const spawnZone1 = createZone({
-    name: 'level01_spawn1',
-    size: new Vector3(100, 100, 100),
-    backgroundColor: Color.fromCSS('#FF8866'),
-  })
-  map.zones.push(spawnZone1)
-
-  const spawnpoint1 = Entity.marker
-  map.entities.push(spawnpoint1)
-
-  const spawnpoints: Entity[] = [spawnpoint1]
-
-  // randomly select a spawn using scripts
   gameState.script?.on('start_level01', () => {
-    return `teleport -p ${spawnpoints[0].ref}`
+    return `
+set §tmp ^rnd_${spawns.length}
+
+${spawns
+  .map((spawn, index) => {
+    return `
+if (§tmp == ${index}) {
+  teleport -p ${spawn.ref}
+}
+`
+  })
+  .join('\n')}
+`
   })
 
   return map
