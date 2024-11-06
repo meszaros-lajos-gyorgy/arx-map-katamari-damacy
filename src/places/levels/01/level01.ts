@@ -208,7 +208,7 @@ if (§tmp == ${index}) {
   const sun = createSun({
     size: 200,
     position: sunAt,
-    orientation: new Rotation(0, MathUtils.degToRad(90), 0),
+    orientation: new Rotation(0, MathUtils.degToRad(-90), 0),
   })
   map.entities.push(sun)
 
