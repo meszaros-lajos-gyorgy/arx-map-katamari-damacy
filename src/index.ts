@@ -37,7 +37,7 @@ map.add(level01, true)
 
 gameState.script?.on('init', () => {
   const { delay } = useDelay()
-  return `${delay(2000)} sendevent start_level01 self nop`
+  return `${delay(300)} sendevent start_level01 self nop`
 })
 
 // -----------------------

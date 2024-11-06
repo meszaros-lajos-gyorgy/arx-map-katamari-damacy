@@ -4,6 +4,7 @@ import { createLight, createZone } from 'arx-level-generator/tools'
 import { pickRandom, pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
 import { Vector2 } from 'three'
 import { createEntity, EntityTypes } from '@/entities/entity.js'
+import { sfxPlayerAppears4SoundScript } from '@/sounds.js'
 import {
   soilHumanSoil1,
   soilHumanStandard1,
@@ -164,6 +165,7 @@ ${spawns
   .map((spawn, index) => {
     return `
 if (§tmp == ${index}) {
+  ${sfxPlayerAppears4SoundScript.play()}
   teleport -p ${spawn.ref}
 }
 `
