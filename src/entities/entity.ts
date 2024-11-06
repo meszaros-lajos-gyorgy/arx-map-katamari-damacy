@@ -1,5 +1,6 @@
 import { Entity, EntityModel, Rotation, Vector3 } from 'arx-level-generator'
 import { ScriptSubroutine } from 'arx-level-generator/scripting'
+import { useDelay } from 'arx-level-generator/scripting/hooks'
 import {
   Collision,
   Interactivity,
@@ -31,21 +32,15 @@ export enum EntityTypes {
   Leek = 'food_leek',
 }
 
+type EntitySounds = 'bumpFarFromConsumed' | 'bumpAlmostConsumed' | 'consumed'
+type EntityAnimations = 'idle' | 'talk' | 'bumpFarFromConsumed' | 'bumpAlmostConsumed'
+
 type EntityDefinition = {
-  sounds: {
-    bumpFarFromConsumed?: string
-    bumpAlmostConsumed?: string
-    consumed?: string
-  }
+  sounds: Partial<Record<EntitySounds, string>>
   baseHeight: number
   mesh: string | EntityModel
   tweaks?: Record<string, string | string[]>
-  animations: {
-    idle?: string
-    talk?: string
-    bumpFarFromConsumed?: string
-    bumpAlmostConsumed?: string
-  }
+  animations: Partial<Record<EntityAnimations, string>>
   /**
    * if not specified, then a random rotation will be applied
    */
@@ -54,6 +49,16 @@ type EntityDefinition = {
    * maximum of 2 words to describe the entity, like 'ylside' or 'goblin lord'
    */
   displayName: string
+  delay?: {
+    start?: {
+      animations?: Partial<Record<EntityAnimations, number>>
+      // sounds?: Partial<Record<EntitySounds, number>>
+    }
+    // end?: {
+    //   animations?: Partial<Record<EntityAnimations, number>>
+    //   // sounds?: Partial<Record<EntitySounds, number>>
+    // }
+  }
 }
 
 const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
@@ -72,6 +77,13 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       bumpAlmostConsumed: 'goblin_fight_grunt',
     },
     displayName: 'goblin',
+    delay: {
+      start: {
+        animations: {
+          bumpFarFromConsumed: 400,
+        },
+      },
+    },
   },
   [EntityTypes.GoblinLord]: {
     sounds: {
@@ -178,7 +190,10 @@ const varAlmostConsumable = new Variable('bool', 'almost_consumable', false)
 const varBaseHeight = new Variable('int', 'base_height', 0, true) // model height (centimeters)
 const varScaleFactor = new Variable('float', 'scale_factor', 0, true) // value to be passed to setscale command (percentage)
 const varTmp = new Variable('float', 'tmp', 0, true) // helper for calculations
-const varLastSpokenAt = new Variable('int', 'last_spoken_at', 0, true) // (seconds)
+const varFinishedSpeakingAt = new Variable('int', 'finished_speaking_at', 0, true) // (seconds)
+
+const resetBehaviorCounter = new Variable('int', 'reset_behavior_counter', 0, true)
+const isBumping = new Variable('bool', 'is_bumping', false)
 
 export function createRootEntities(): Entity[] {
   return Object.values(EntityTypes).map((type) => {
@@ -208,7 +223,28 @@ setscale ${varScaleFactor.name}
       'gosub',
     )
 
-    entity.script?.subroutines.push(resize)
+    const resetBehavior = new ScriptSubroutine(
+      'reset_behavior',
+      () => {
+        const { delay } = useDelay()
+        return `
+inc ${resetBehaviorCounter.name} 1
+
+if (${resetBehaviorCounter.name} == 2) {
+  set ${varTmp.name} ^gameseconds
+  inc ${varTmp.name} 0.3
+  set ${varFinishedSpeakingAt.name} ${varTmp.name}
+  set ${isBumping.name} 0
+
+  ${delay(1000)} behavior unstack
+  ${delay(100)} settarget none
+}
+`
+      },
+      'goto',
+    )
+
+    entity.script?.subroutines.push(resize, resetBehavior)
 
     entity.script?.properties.push(
       Collision.on,
@@ -222,12 +258,17 @@ setscale ${varScaleFactor.name}
       varBaseHeight,
       varScaleFactor,
       varTmp,
-      varLastSpokenAt,
+      varFinishedSpeakingAt,
+      resetBehaviorCounter,
+      isBumping,
     )
+
     entity.script
       ?.on('init', () => {
         return `
 setgroup consumables
+behavior none
+settarget none
 
 set ${varTmp.name} ^rnd_40
 div ${varTmp.name} 100
@@ -317,6 +358,7 @@ if (${varSize.name} < ${varTmp.name}) {
         }
       })
       .on('collide_npc', () => {
+        const { delay } = useDelay()
         return `
 if (${varIsConsumable.name} == 1) {
   sendevent grow player "~${varSize.name}~ ~${entityDefinitions[type].displayName}~"
@@ -326,18 +368,25 @@ if (${varIsConsumable.name} == 1) {
   ${entityDefinitions[type].sounds.consumed ?? ''}
 } else {
   if (^speaking == 0) {
-    // throttle bump sounds by 2 seconds intervals
-    set ${varTmp.name} ${varLastSpokenAt.name}
-    inc ${varTmp.name} 2
+    // throttle bump sounds by 1 second intervals
+    set ${varTmp.name} ${varFinishedSpeakingAt.name}
+    inc ${varTmp.name} 1
     if (${varTmp.name} < ^gameseconds) {
-      set ${varLastSpokenAt.name} ^gameseconds
+      if (${isBumping.name} == 0) {
+        set ${isBumping.name} 1
+        set ${resetBehaviorCounter.name} 0
 
-      if (${varAlmostConsumable.name} == 1) {
-        ${entityDefinitions[type].animations.bumpAlmostConsumed ? `playanim hit` : ''}
-        ${entityDefinitions[type].sounds.bumpAlmostConsumed ?? entityDefinitions[type].sounds.bumpFarFromConsumed ?? ''}
-      } else {
-        ${entityDefinitions[type].animations.bumpFarFromConsumed ? `playanim hit_short` : ''}
-        ${entityDefinitions[type].sounds.bumpFarFromConsumed ?? ''}
+        behavior stack
+        behavior friendly
+        settarget player
+
+        if (${varAlmostConsumable.name} == 1) {
+          ${entityDefinitions[type].sounds.bumpAlmostConsumed ?? entityDefinitions[type].sounds.bumpFarFromConsumed ?? ''} ${delay(100, false)} ${resetBehavior.invoke()}
+          ${delay(entityDefinitions[type].delay?.start?.animations?.bumpAlmostConsumed ?? 0, false)} ${entityDefinitions[type].animations.bumpAlmostConsumed ? `playanim hit` : ''} ${resetBehavior.invoke()}
+        } else {
+          ${entityDefinitions[type].sounds.bumpFarFromConsumed ?? ''} ${delay(100, false)} ${resetBehavior.invoke()}
+          ${delay(entityDefinitions[type].delay?.start?.animations?.bumpFarFromConsumed ?? 0, false)} ${entityDefinitions[type].animations.bumpFarFromConsumed ? `playanim hit_short` : ''} ${resetBehavior.invoke()}
+        }
       }
     }
   }
