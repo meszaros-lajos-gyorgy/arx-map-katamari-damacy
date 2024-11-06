@@ -192,8 +192,8 @@ const varScaleFactor = new Variable('float', 'scale_factor', 0, true) // value t
 const varTmp = new Variable('float', 'tmp', 0, true) // helper for calculations
 const varFinishedSpeakingAt = new Variable('int', 'finished_speaking_at', 0, true) // (seconds)
 
-const resetBehaviorCounter = new Variable('int', 'reset_behavior_counter', 0, true)
-const isBumping = new Variable('bool', 'is_bumping', false)
+const varResetBehaviorCounter = new Variable('int', 'reset_behavior_counter', 0, true)
+const varIsBumping = new Variable('bool', 'is_bumping', false)
 
 export function createRootEntities(): Entity[] {
   return Object.values(EntityTypes).map((type) => {
@@ -228,13 +228,13 @@ setscale ${varScaleFactor.name}
       () => {
         const { delay } = useDelay()
         return `
-inc ${resetBehaviorCounter.name} 1
+inc ${varResetBehaviorCounter.name} 1
 
-if (${resetBehaviorCounter.name} == 2) {
+if (${varResetBehaviorCounter.name} == 2) {
   set ${varTmp.name} ^gameseconds
   inc ${varTmp.name} 0.3
   set ${varFinishedSpeakingAt.name} ${varTmp.name}
-  set ${isBumping.name} 0
+  set ${varIsBumping.name} 0
 
   ${delay(1000)} behavior unstack
   ${delay(100)} settarget none
@@ -259,8 +259,8 @@ if (${resetBehaviorCounter.name} == 2) {
       varScaleFactor,
       varTmp,
       varFinishedSpeakingAt,
-      resetBehaviorCounter,
-      isBumping,
+      varResetBehaviorCounter,
+      varIsBumping,
     )
 
     entity.script
@@ -372,9 +372,9 @@ if (${varIsConsumable.name} == 1) {
     set ${varTmp.name} ${varFinishedSpeakingAt.name}
     inc ${varTmp.name} 1
     if (${varTmp.name} < ^gameseconds) {
-      if (${isBumping.name} == 0) {
-        set ${isBumping.name} 1
-        set ${resetBehaviorCounter.name} 0
+      if (${varIsBumping.name} == 0) {
+        set ${varIsBumping.name} 1
+        set ${varResetBehaviorCounter.name} 0
 
         behavior stack
         behavior friendly
