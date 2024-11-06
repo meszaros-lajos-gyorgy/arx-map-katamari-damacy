@@ -157,7 +157,7 @@ export function createLevel01(gameState: Entity): ArxMap {
 
   // -------------------------
 
-  gameState.script?.on('start_level01', () => {
+  gameState.script?.on('goto_level01', () => {
     return `
 set §tmp ^rnd_${spawns.length}
 
