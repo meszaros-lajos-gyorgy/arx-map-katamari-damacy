@@ -14,7 +14,7 @@ import { createLight, createZone } from 'arx-level-generator/tools'
 import { pickRandom, pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils, Vector2 } from 'three'
 import { createEntity, EntityTypes } from '@/entities/entity.js'
-import { createSun } from '@/entities/sun.js'
+import { createRootStar, createStar } from '@/entities/star.js'
 import { sfxPlayerAppears4SoundScript } from '@/sounds.js'
 import {
   soilHumanSoil1,
@@ -194,6 +194,9 @@ if (§tmp == ${index}) {
 
   // -------------------------
 
+  const rootStar = createRootStar()
+  map.entities.push(rootStar)
+
   const sunAt = new Vector3(1500, 70, 3000)
 
   const platformUnderTheSun = createPlaneMesh({
@@ -205,7 +208,7 @@ if (§tmp == ${index}) {
   platformUnderTheSun.position.z = sunAt.z
   map.polygons.addThreeJsMesh(platformUnderTheSun)
 
-  const sun = createSun({
+  const sun = createStar({
     size: 200,
     position: sunAt,
     orientation: new Rotation(0, MathUtils.degToRad(-90), 0),
@@ -228,7 +231,7 @@ if (§tmp == ${index}) {
       platformUnderTheStar.position.z = starAt.z
       map.polygons.addThreeJsMesh(platformUnderTheStar, { tryToQuadify: QUADIFY })
 
-      const star = createSun({
+      const star = createStar({
         size,
         position: starAt,
       })
@@ -248,7 +251,7 @@ if (§tmp == ${index}) {
       platformUnderTheStar.position.z = starAt.z
       map.polygons.addThreeJsMesh(platformUnderTheStar, { tryToQuadify: QUADIFY })
 
-      const star = createSun({
+      const star = createStar({
         size,
         position: starAt,
       })
@@ -268,7 +271,7 @@ if (§tmp == ${index}) {
       platformUnderTheStar.position.z = starAt.z
       map.polygons.addThreeJsMesh(platformUnderTheStar, { tryToQuadify: QUADIFY })
 
-      const star = createSun({
+      const star = createStar({
         size,
         position: starAt,
       })

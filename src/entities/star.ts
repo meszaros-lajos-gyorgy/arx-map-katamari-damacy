@@ -4,12 +4,12 @@ import { Collision, Interactivity, Scale, Shadow, Variable } from 'arx-level-gen
 import { getLowestPolygonIdx, scaleUV, toArxCoordinateSystem, translateUV } from 'arx-level-generator/tools/mesh'
 import { Mesh, MeshBasicMaterial, SphereGeometry, Vector2 } from 'three'
 
-type createSunProps = {
-  /**
-   * default value is 20
-   */
-  size?: number
+type createStarProps = {
+  size: number
   position: Vector3
+  /**
+   * default value is undefined, which means no rotation is done to the model
+   */
   orientation?: Rotation
 }
 
@@ -29,8 +29,8 @@ translateUV(new Vector2(0.5, 0), geometry)
 let mesh = new Mesh(geometry, material)
 mesh = toArxCoordinateSystem(mesh)
 
-const sunModel = EntityModel.fromThreeJsObj(mesh, {
-  filename: 'sun.ftl',
+const starModel = EntityModel.fromThreeJsObj(mesh, {
+  filename: 'star.ftl',
   originIdx: getLowestPolygonIdx(geometry),
 })
 
@@ -39,20 +39,19 @@ const glow = new Glow({
   size: 1,
 })
 
-export function createSun({ position, orientation, size = 20 }: createSunProps): Entity {
-  const sun = new Entity({
-    src: 'fix_inter/sun',
-    position,
-    orientation,
-    model: sunModel,
+export function createRootStar(): Entity {
+  const star = new Entity({
+    src: 'fix_inter/star',
+    model: starModel,
   })
-  sun.withScript()
+  star.withScript()
+  star.script?.makeIntoRoot()
 
   const varYOffset = new Variable('float', 'y_offset', 0)
 
-  sun.script?.properties.push(Shadow.off, Interactivity.off, Collision.off, new Scale(size), varYOffset)
+  star.script?.properties.push(Shadow.off, Interactivity.off, Collision.off, varYOffset)
 
-  sun.script
+  star.script
     ?.on('init', () => {
       return `
 ${glow.on()}
@@ -73,5 +72,18 @@ set ${varYOffset.name} 0
 `
     })
 
-  return sun
+  return star
+}
+
+export function createStar({ position, orientation, size }: createStarProps): Entity {
+  const star = new Entity({
+    src: 'fix_inter/star',
+    position,
+    orientation,
+  })
+  star.withScript()
+
+  star.script?.properties.push(new Scale(size))
+
+  return star
 }
