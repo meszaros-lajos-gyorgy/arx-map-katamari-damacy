@@ -72,7 +72,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       bumpAlmostConsumed: 'speak [goblin_help]',
       consumed: 'speak [goblin_ouch]',
     },
-    baseHeight: 160,
+    baseHeight: 165,
     mesh: 'goblin_base/goblin_base.teo',
     animations: {
       idle: 'goblin_normal_wait',
@@ -101,7 +101,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     }
 `,
     },
-    baseHeight: 210,
+    baseHeight: 217,
     mesh: 'goblin_lord/goblin_lord.teo',
     animations: {
       idle: 'goblinlord_normal_wait',
@@ -117,7 +117,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       bumpAlmostConsumed: 'speak [alotar_irritated]',
       consumed: 'speak [alotar_pain]',
     },
-    baseHeight: 170,
+    baseHeight: 180,
     mesh: 'goblin_king/goblin_king.teo',
     animations: {
       idle: 'goblin_normal_wait',
@@ -139,7 +139,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     }
 `,
     },
-    baseHeight: 180,
+    baseHeight: 185,
     mesh: 'human_base/human_base.teo',
     tweaks: {
       lower: 'human_ylside',
@@ -159,7 +159,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       bumpAlmostConsumed: metalOnWaterSoundScript.play(),
       consumed: eatSoundScript.play(),
     },
-    baseHeight: 52,
+    baseHeight: 20,
     mesh: carrotModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
     animations: {
@@ -182,7 +182,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       bumpAlmostConsumed: metalOnWaterSoundScript.play(),
       consumed: eatSoundScript.play(),
     },
-    baseHeight: 75,
+    baseHeight: 73,
     mesh: leekModel,
     orientation: new Rotation(0, 0, MathUtils.degToRad(90)),
     animations: {
@@ -199,6 +199,9 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       },
     },
   },
+  /*
+  cheese: 12 baseHeight
+  */
 }
 
 // -----------------
