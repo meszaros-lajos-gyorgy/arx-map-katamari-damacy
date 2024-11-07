@@ -53,14 +53,30 @@ export function createMeasurementRoom(): ArxMap {
   )
 
   const entity = new Entity({
-    src: 'items/provisions/food_leek',
-    position: new Vector3(0, -10, 250),
-    orientation: new Rotation(0, 0, MathUtils.degToRad(-90)),
+    // src: 'items/provisions/food_leek',
+    // src: 'items/provisions/carrot',
+    src: 'items/provisions/cheese',
+    // src: 'npc/goblin_base',
+    // src: 'npc/human_base',
+
+    position: new Vector3(0, 0, 230),
+    // orientation: new Rotation(0, 0, MathUtils.degToRad(-90)),
   })
   entity.withScript()
   entity.script?.properties.push(Shadow.off)
+  entity.script?.on('init', () => {
+    return `
+// setweapon none
+// loadanim die gargoyle_wait
+// dodamage self 200
+
+// tweak lower "human_ylside"
+// tweak skin "npc_human_base_hero_head" "npc_human_ylside_head"
+`
+  })
   // entity.script?.on('load', () => {
-  //   return `use_mesh "Goblin_king\\Goblin_king.teo"`
+  //   // return `use_mesh "goblin_king/goblin_king.teo"`
+  //   return `use_mesh "goblin_lord/goblin_lord.teo"`
   // })
 
   map.entities.push(entity)
