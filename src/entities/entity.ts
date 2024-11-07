@@ -33,7 +33,8 @@ export enum EntityTypes {
 }
 
 type EntitySounds = 'bumpFarFromConsumed' | 'bumpAlmostConsumed' | 'consumed'
-type EntityAnimations = 'idle' | 'talk' | 'bumpFarFromConsumed' | 'bumpAlmostConsumed'
+type NonNativeEntityAnimations = 'bumpFarFromConsumed' | 'bumpAlmostConsumed'
+type EntityAnimations = 'idle' | 'talk' | NonNativeEntityAnimations
 
 type EntityDefinition = {
   sounds: Partial<Record<EntitySounds, string>>
@@ -54,11 +55,11 @@ type EntityDefinition = {
    */
   delays?: {
     start?: {
-      animations?: Partial<Record<EntityAnimations, number>>
+      animations?: Partial<Record<NonNativeEntityAnimations, number>>
       sounds?: Partial<Record<EntitySounds, number>>
     }
     end?: {
-      animations?: Partial<Record<EntityAnimations, number>>
+      animations?: Partial<Record<NonNativeEntityAnimations, number>>
       sounds?: Partial<Record<EntitySounds, number>>
     }
   }
@@ -391,7 +392,7 @@ if (${varIsConsumable.name} == 1) {
   ${Collision.off}
   objecthide self on
   sendevent consumed self nop
-  ${sounds.consumed ?? ''}
+  ${delay(delays?.start?.sounds?.consumed ?? 0, false)} ${sounds.consumed ?? ''} ${delay(delays?.end?.sounds?.consumed ?? 0, false)}
 } else {
   if (^speaking == 0) {
     // throttle bump sounds by 1 second intervals
