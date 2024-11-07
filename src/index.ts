@@ -1,4 +1,4 @@
-import { ArxMap, HudElements, Settings, Vector3 } from 'arx-level-generator'
+import { ArxMap, Settings, Vector3 } from 'arx-level-generator'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
 import { createRootEntities } from './entities/entity.js'
 import { createGameState } from './entities/gameState.js'
