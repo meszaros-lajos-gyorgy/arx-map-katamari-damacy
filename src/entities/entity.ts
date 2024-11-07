@@ -17,7 +17,7 @@ import {
   hasteStartSoundScript,
   metalOnClothSoundScript,
   metalOnWaterSoundScript,
-  ylsideDyingSoundScript,
+  ylsideDeathSoundScript,
   ylsideGingleSoundScript,
 } from '@/sounds.js'
 
@@ -56,11 +56,11 @@ type EntityDefinition = {
   delays?: {
     start?: {
       animations?: Partial<Record<NonNativeEntityAnimations, number>>
-      sounds?: Partial<Record<EntitySounds, number>>
+      sounds?: Omit<Partial<Record<EntitySounds, number>>, 'consumed'>
     }
     end?: {
       animations?: Partial<Record<NonNativeEntityAnimations, number>>
-      sounds?: Partial<Record<EntitySounds, number>>
+      sounds?: Omit<Partial<Record<EntitySounds, number>>, 'consumed'>
     }
   }
 }
@@ -133,7 +133,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       bumpAlmostConsumed: ylsideGingleSoundScript.play(),
       consumed: `
     random 30 {
-      ${ylsideDyingSoundScript.play()}
+      ${ylsideDeathSoundScript.play()}
     } else {
       ${hasteStartSoundScript.play()}
     }
@@ -152,6 +152,14 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       bumpAlmostConsumed: 'ylside_fight_grunt',
     },
     displayName: 'ylside',
+    delays: {
+      end: {
+        sounds: {
+          // length of sfx/ylside_gingle.wav is 6104ms, but the end is mostly silent
+          bumpAlmostConsumed: 5000,
+        },
+      },
+    },
   },
   [EntityTypes.Carrot]: {
     sounds: {
@@ -170,8 +178,10 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     delays: {
       end: {
         sounds: {
-          bumpFarFromConsumed: 100,
-          bumpAlmostConsumed: 100,
+          // length of sfx/metal_on_cloth_1.wav is 734ms
+          bumpFarFromConsumed: 734,
+          // length of sfx/metal_on_water_1.wav is 688ms
+          bumpAlmostConsumed: 688,
         },
       },
     },
@@ -193,8 +203,10 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
     delays: {
       end: {
         sounds: {
-          bumpFarFromConsumed: 100,
-          bumpAlmostConsumed: 100,
+          // length of sfx/metal_on_cloth_1.wav is 734ms
+          bumpFarFromConsumed: 734,
+          // length of sfx/metal_on_water_1.wav is 688ms
+          bumpAlmostConsumed: 688,
         },
       },
     },
@@ -213,7 +225,7 @@ const varAlmostConsumable = new Variable('bool', 'almost_consumable', false)
 const varBaseHeight = new Variable('int', 'base_height', 0, true) // model height (centimeters)
 const varScaleFactor = new Variable('float', 'scale_factor', 0, true) // value to be passed to setscale command (percentage)
 const varTmp = new Variable('float', 'tmp', 0, true) // helper for calculations
-const varFinishedSpeakingAt = new Variable('int', 'finished_speaking_at', 0, true) // (seconds)
+const varStartedSpeakingAt = new Variable('int', 'started_speaking_at', 0, true) // (seconds)
 
 const varResetBehaviorCounter = new Variable('int', 'reset_behavior_counter', 0, true)
 const varIsBumping = new Variable('bool', 'is_bumping', false)
@@ -256,13 +268,11 @@ setscale ${varScaleFactor.name}
 inc ${varResetBehaviorCounter.name} 1
 
 if (${varResetBehaviorCounter.name} == 2) {
-  set ${varTmp.name} ^gameseconds
-  inc ${varTmp.name} 0.3
-  set ${varFinishedSpeakingAt.name} ${varTmp.name}
   set ${varIsBumping.name} 0
 
+  // stop looking at the player after 1 second
   ${delay(1000)} behavior unstack
-  ${delay(100)} settarget none
+  ${delay(0)} settarget none
 }
 `
       },
@@ -283,7 +293,7 @@ if (${varResetBehaviorCounter.name} == 2) {
       varBaseHeight,
       varScaleFactor,
       varTmp,
-      varFinishedSpeakingAt,
+      varStartedSpeakingAt,
       varResetBehaviorCounter,
       varIsBumping,
     )
@@ -395,14 +405,12 @@ if (${varIsConsumable.name} == 1) {
   ${Collision.off}
   objecthide self on
   sendevent consumed self nop
-  ${delay(delays?.start?.sounds?.consumed ?? 0, false)} ${sounds.consumed ?? ''} ${delay(delays?.end?.sounds?.consumed ?? 0, false)}
+  ${sounds.consumed ?? ''}
 } else {
   if (^speaking == 0) {
-    // throttle bump sounds by 1 second intervals
-    set ${varTmp.name} ${varFinishedSpeakingAt.name}
-    inc ${varTmp.name} 1
-    if (${varTmp.name} < ^gameseconds) {
-      if (${varIsBumping.name} == 0) {
+    if (${varIsBumping.name} == 0) {
+
+        set ${varStartedSpeakingAt.name} ^gameseconds
         set ${varIsBumping.name} 1
         set ${varResetBehaviorCounter.name} 0
 
@@ -417,7 +425,6 @@ if (${varIsConsumable.name} == 1) {
           ${delay(delays?.start?.sounds?.bumpFarFromConsumed ?? 0, false)} ${sounds.bumpFarFromConsumed ?? ''} ${delay(delays?.end?.sounds?.bumpFarFromConsumed ?? 0, false)} ${resetBehavior.invoke()}
           ${delay(delays?.start?.animations?.bumpFarFromConsumed ?? 0, false)} ${animations.bumpFarFromConsumed ? `playanim hit_short` : ''} ${delay(delays?.end?.animations?.bumpFarFromConsumed ?? 0, false)} ${resetBehavior.invoke()}
         }
-      }
     }
   }
 }

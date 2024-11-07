@@ -11,7 +11,7 @@ const eat = new Audio({
   isNative: true,
 })
 
-const ylsideDying = new Audio({
+const ylsideDeath = new Audio({
   filename: 'ylside_death.wav',
   isNative: true,
 })
@@ -38,7 +38,7 @@ const sfxPlayerAppears4 = new Audio({
 
 export const hasteStartSoundScript = new Sound(hasteStart.filename, SoundFlags.VaryPitch)
 export const eatSoundScript = new Sound(eat.filename, SoundFlags.VaryPitch)
-export const ylsideDyingSoundScript = new Sound(ylsideDying.filename, SoundFlags.VaryPitch)
+export const ylsideDeathSoundScript = new Sound(ylsideDeath.filename, SoundFlags.VaryPitch)
 export const ylsideGingleSoundScript = new Sound(ylsideGingle.filename, SoundFlags.VaryPitch)
 export const metalOnWaterSoundScript = new Sound(metalOnWater.filename, SoundFlags.VaryPitch)
 export const metalOnClothSoundScript = new Sound(metalOnCloth.filename, SoundFlags.VaryPitch)
