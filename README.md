@@ -10,3 +10,5 @@ This mod aims to copy the aspects of [Namco's Katamari Damacy game](https://en.w
 ![Preview](preview.jpg?raw=true 'Preview')
 
 Check out other maps and mods for Arx Fatalis here: [arx-tools.github.io](https://arx-tools.github.io/)
+
+Read about the technical aspects of the map [here](docs/game-mechanics.md)
