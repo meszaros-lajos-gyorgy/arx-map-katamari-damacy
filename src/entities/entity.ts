@@ -49,15 +49,18 @@ type EntityDefinition = {
    * maximum of 2 words to describe the entity, like 'ylside' or 'goblin lord'
    */
   displayName: string
-  delay?: {
+  /**
+   * in milliseconds
+   */
+  delays?: {
     start?: {
       animations?: Partial<Record<EntityAnimations, number>>
-      // sounds?: Partial<Record<EntitySounds, number>>
+      sounds?: Partial<Record<EntitySounds, number>>
     }
-    // end?: {
-    //   animations?: Partial<Record<EntityAnimations, number>>
-    //   // sounds?: Partial<Record<EntitySounds, number>>
-    // }
+    end?: {
+      animations?: Partial<Record<EntityAnimations, number>>
+      sounds?: Partial<Record<EntitySounds, number>>
+    }
   }
 }
 
@@ -77,7 +80,7 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       bumpAlmostConsumed: 'goblin_fight_grunt',
     },
     displayName: 'goblin',
-    delay: {
+    delays: {
       start: {
         animations: {
           bumpFarFromConsumed: 400,
@@ -163,6 +166,14 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       bumpAlmostConsumed: 'blackthing_gethit',
     },
     displayName: 'carrot',
+    delays: {
+      end: {
+        sounds: {
+          bumpFarFromConsumed: 100,
+          bumpAlmostConsumed: 100,
+        },
+      },
+    },
   },
   [EntityTypes.Leek]: {
     sounds: {
@@ -178,6 +189,14 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       bumpAlmostConsumed: 'blackthing_gethit',
     },
     displayName: 'leek',
+    delays: {
+      end: {
+        sounds: {
+          bumpFarFromConsumed: 100,
+          bumpAlmostConsumed: 100,
+        },
+      },
+    },
   },
 }
 
@@ -197,12 +216,14 @@ const varIsBumping = new Variable('bool', 'is_bumping', false)
 
 export function createRootEntities(): Entity[] {
   return Object.values(EntityTypes).map((type) => {
+    const entityDefinition = entityDefinitions[type]
+
     const entity = new Entity({
       src: `npc/entity/${type}`,
     })
 
-    if (entityDefinitions[type].mesh instanceof EntityModel) {
-      entity.model = entityDefinitions[type].mesh
+    if (entityDefinition.mesh instanceof EntityModel) {
+      entity.model = entityDefinition.mesh
     }
 
     entity.withScript()
@@ -282,8 +303,8 @@ physical height 200
       .on('initend', () => {
         let tweaks: string[] = []
 
-        if (entityDefinitions[type].tweaks !== undefined) {
-          tweaks = Object.entries(entityDefinitions[type].tweaks).map(([key, value]) => {
+        if (entityDefinition.tweaks !== undefined) {
+          tweaks = Object.entries(entityDefinition.tweaks).map(([key, value]) => {
             if (Array.isArray(value)) {
               return `tweak ${key} ${value.map((v) => `"${v}"`).join(' ')}`
             } else {
@@ -292,13 +313,15 @@ physical height 200
           })
         }
 
-        return `
-loadanim wait "${entityDefinitions[type].animations.idle ?? 'gargoyle_wait'}"
-${entityDefinitions[type].animations.talk ? `loadanim talk_neutral "${entityDefinitions[type].animations.talk}"` : ''}
-${entityDefinitions[type].animations.bumpFarFromConsumed ? `loadanim hit_short "${entityDefinitions[type].animations.bumpFarFromConsumed}"` : ''}
-${entityDefinitions[type].animations.bumpAlmostConsumed ? `loadanim hit "${entityDefinitions[type].animations.bumpAlmostConsumed}"` : ''}
+        const { animations } = entityDefinition
 
-set ${varBaseHeight.name} ${entityDefinitions[type].baseHeight}
+        return `
+loadanim wait "${animations.idle ?? 'gargoyle_wait'}"
+${animations.talk ? `loadanim talk_neutral "${animations.talk}"` : ''}
+${animations.bumpFarFromConsumed ? `loadanim hit_short "${animations.bumpFarFromConsumed}"` : ''}
+${animations.bumpAlmostConsumed ? `loadanim hit "${animations.bumpAlmostConsumed}"` : ''}
+
+set ${varBaseHeight.name} ${entityDefinition.baseHeight}
 
 ${resize.invoke()}
 
@@ -351,21 +374,24 @@ if (${varSize.name} < ${varTmp.name}) {
       `
       })
       .on('load', () => {
-        if (typeof entityDefinitions[type].mesh === 'string') {
-          return `use_mesh "${entityDefinitions[type].mesh}"`
+        if (typeof entityDefinition.mesh === 'string') {
+          return `use_mesh "${entityDefinition.mesh}"`
         } else {
           return ''
         }
       })
       .on('collide_npc', () => {
         const { delay } = useDelay()
+
+        const { sounds, animations, delays } = entityDefinition
+
         return `
 if (${varIsConsumable.name} == 1) {
-  sendevent grow player "~${varSize.name}~ ~${entityDefinitions[type].displayName}~"
+  sendevent grow player "~${varSize.name}~ ~${entityDefinition.displayName}~"
   ${Collision.off}
   objecthide self on
   sendevent consumed self nop
-  ${entityDefinitions[type].sounds.consumed ?? ''}
+  ${sounds.consumed ?? ''}
 } else {
   if (^speaking == 0) {
     // throttle bump sounds by 1 second intervals
@@ -381,11 +407,11 @@ if (${varIsConsumable.name} == 1) {
         settarget player
 
         if (${varAlmostConsumable.name} == 1) {
-          ${entityDefinitions[type].sounds.bumpAlmostConsumed ?? entityDefinitions[type].sounds.bumpFarFromConsumed ?? ''} ${delay(100, false)} ${resetBehavior.invoke()}
-          ${delay(entityDefinitions[type].delay?.start?.animations?.bumpAlmostConsumed ?? 0, false)} ${entityDefinitions[type].animations.bumpAlmostConsumed ? `playanim hit` : ''} ${resetBehavior.invoke()}
+          ${delay(delays?.start?.sounds?.bumpAlmostConsumed ?? 0, false)} ${sounds.bumpAlmostConsumed ?? sounds.bumpFarFromConsumed ?? ''} ${delay(delays?.end?.sounds?.bumpAlmostConsumed ?? 0, false)} ${resetBehavior.invoke()}
+          ${delay(delays?.start?.animations?.bumpAlmostConsumed ?? 0, false)} ${animations.bumpAlmostConsumed ? `playanim hit` : ''} ${delay(delays?.end?.animations?.bumpAlmostConsumed ?? 0, false)} ${resetBehavior.invoke()}
         } else {
-          ${entityDefinitions[type].sounds.bumpFarFromConsumed ?? ''} ${delay(100, false)} ${resetBehavior.invoke()}
-          ${delay(entityDefinitions[type].delay?.start?.animations?.bumpFarFromConsumed ?? 0, false)} ${entityDefinitions[type].animations.bumpFarFromConsumed ? `playanim hit_short` : ''} ${resetBehavior.invoke()}
+          ${delay(delays?.start?.sounds?.bumpFarFromConsumed ?? 0, false)} ${sounds.bumpFarFromConsumed ?? ''} ${delay(delays?.end?.sounds?.bumpFarFromConsumed ?? 0, false)} ${resetBehavior.invoke()}
+          ${delay(delays?.start?.animations?.bumpFarFromConsumed ?? 0, false)} ${animations.bumpFarFromConsumed ? `playanim hit_short` : ''} ${delay(delays?.end?.animations?.bumpFarFromConsumed ?? 0, false)} ${resetBehavior.invoke()}
         }
       }
     }
@@ -410,9 +436,11 @@ type createEntityProps = {
 }
 
 export function createEntity({ position, size, type }: createEntityProps) {
+  const entityDefinition = entityDefinitions[type]
+
   let orientation: Rotation
-  if (entityDefinitions[type].orientation !== undefined) {
-    orientation = entityDefinitions[type].orientation
+  if (entityDefinition.orientation !== undefined) {
+    orientation = entityDefinition.orientation
   } else {
     orientation = new Rotation(0, MathUtils.degToRad(randomBetween(0, 360)), 0)
   }
