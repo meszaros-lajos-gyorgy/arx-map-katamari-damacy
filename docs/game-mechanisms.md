@@ -9,3 +9,6 @@ supports collision detection for NPCs.
 Entities have a pre-determined height measured in centimeters. Every model has
 a different height, so they were measured next to a standardized block in
 places/measurementRoom.ts
+
+Models that are partially underground only the part that is above ground
+measured.
