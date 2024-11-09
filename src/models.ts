@@ -15,3 +15,11 @@ export const leekModel = new EntityModel({
   filename: 'food_leek.ftl',
   sourcePath: 'models',
 })
+
+/**
+ * copied over from game/graph/obj3d/interactive/items/provisions/cheese/cheese.ftl
+ */
+export const cheeseModel = new EntityModel({
+  filename: 'cheese.ftl',
+  sourcePath: 'models',
+})

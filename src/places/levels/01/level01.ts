@@ -116,11 +116,12 @@ export function createLevel01(gameState: Entity, settings: Settings): ArxMap {
   // -------------------------
 
   const npcDistribution = [
-    { value: EntityTypes.Ylside, weight: 10 },
+    { value: EntityTypes.Ylside, weight: 20 },
     { value: EntityTypes.Carrot, weight: 20 },
     { value: EntityTypes.Leek, weight: 20 },
     { value: EntityTypes.GoblinLord, weight: 30 },
     { value: EntityTypes.Goblin, weight: 60 },
+    { value: EntityTypes.Cheese, weight: 10 },
   ]
 
   const smalls = pickWeightedRandoms(100, npcDistribution)

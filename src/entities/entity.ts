@@ -11,7 +11,7 @@ import {
 } from 'arx-level-generator/scripting/properties'
 import { randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils } from 'three'
-import { carrotModel, leekModel } from '@/models.js'
+import { carrotModel, cheeseModel, leekModel } from '@/models.js'
 import {
   eatSoundScript,
   hasteStartSoundScript,
@@ -30,6 +30,7 @@ export enum EntityTypes {
   Ylside = 'human_ylside',
   Carrot = 'carrot',
   Leek = 'food_leek',
+  Cheese = 'cheese',
 }
 
 type EntitySounds = 'bumpFarFromConsumed' | 'bumpAlmostConsumed' | 'consumed'
@@ -211,9 +212,30 @@ const entityDefinitions: Record<EntityTypes, EntityDefinition> = {
       },
     },
   },
-  /*
-  cheese: 12 baseHeight
-  */
+  [EntityTypes.Cheese]: {
+    sounds: {
+      bumpFarFromConsumed: metalOnClothSoundScript.play(),
+      bumpAlmostConsumed: metalOnWaterSoundScript.play(),
+      consumed: eatSoundScript.play(),
+    },
+    baseHeight: 12,
+    mesh: cheeseModel,
+    animations: {
+      bumpFarFromConsumed: 'bee_grunt',
+      bumpAlmostConsumed: 'blackthing_gethit',
+    },
+    displayName: 'cheese',
+    delays: {
+      end: {
+        sounds: {
+          // length of sfx/metal_on_cloth_1.wav is 734ms
+          bumpFarFromConsumed: 734,
+          // length of sfx/metal_on_water_1.wav is 688ms
+          bumpAlmostConsumed: 688,
+        },
+      },
+    },
+  },
 }
 
 // -----------------
