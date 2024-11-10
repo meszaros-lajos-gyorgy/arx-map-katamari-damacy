@@ -9,7 +9,7 @@ export async function createTeleport(settings: Settings) {
     .copy()
     .selectAll()
     .moveToRoom1()
-    .move(new Vector3(-10000, -1700, -7000))
+    .move(new Vector3(-10450, -1575, -6850))
 
   selection.clearSelection().selectByTextures(['[stone]_human_stone_ornament']).delete()
 
