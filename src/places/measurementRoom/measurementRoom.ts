@@ -3,7 +3,7 @@ import { createBox, createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
 import { Shadow } from 'arx-level-generator/scripting/properties'
 import { MathUtils, Vector2 } from 'three'
 
-export function createMeasurementRoom(): ArxMap {
+export async function createMeasurementRoom(): Promise<ArxMap> {
   const map = new ArxMap()
 
   map.polygons.addThreeJsMesh(

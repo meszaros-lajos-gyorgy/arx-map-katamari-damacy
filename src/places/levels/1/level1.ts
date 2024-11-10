@@ -1,15 +1,7 @@
-import {
-  ArxMap,
-  Color,
-  Entity,
-  QUADIFY,
-  Rotation,
-  Settings,
-  SHADING_SMOOTH,
-  Texture,
-  Vector3,
-} from 'arx-level-generator'
+import { Ambience, ArxMap, Color, Entity, Rotation, Settings, Texture, Vector3 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
+import { useDelay } from 'arx-level-generator/scripting/hooks'
+import { PlayerControls } from 'arx-level-generator/scripting/properties'
 import { createLight, createZone } from 'arx-level-generator/tools'
 import { pickRandom, pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils, Vector2 } from 'three'
@@ -26,21 +18,15 @@ import {
   stoneHumanCityGround3,
   stoneHumanCityGround4,
 } from '@/textures.js'
+import { createCityWest } from '../../../meshPrefabs/cityWest.js'
 
-function createRandomPosition(exclusionsAt: Vector3[]) {
-  const position = new Vector3(0, 0, 0)
-
-  do {
-    position.x = randomBetween(-1800, 1800)
-    position.z = randomBetween(-1800, 1800)
-  } while (position.distanceTo(exclusionsAt[0]) <= 150)
-
-  return position
-}
-
-export function createLevel01(gameState: Entity, settings: Settings): ArxMap {
+export async function createLevel1(gameState: Entity, settings: Settings): Promise<ArxMap> {
   const map = new ArxMap()
 
+  const cityWest = await createCityWest(settings)
+  map.add(cityWest)
+
+  /*
   map.polygons.addThreeJsMesh(
     createPlaneMesh({
       size: 4000,
@@ -75,11 +61,13 @@ export function createLevel01(gameState: Entity, settings: Settings): ArxMap {
       })
     }
   })
+  */
 
   // -------------------------
 
   const eveningSky = Color.fromCSS('#582402')
 
+  /*
   const lightColor = eveningSky.clone().lighten(40)
 
   for (let x = 0; x < 8; x++) {
@@ -95,13 +83,15 @@ export function createLevel01(gameState: Entity, settings: Settings): ArxMap {
       )
     }
   }
+  */
 
   // -------------------------
 
   const spawnZone1 = createZone({
-    name: 'level01_spawn1',
+    name: 'level1_spawn1',
     size: new Vector3(100, 100, 100),
     backgroundColor: eveningSky,
+    ambience: Ambience.rebelsCool,
     drawDistance: 7000,
   })
   map.zones.push(spawnZone1)
@@ -115,6 +105,7 @@ export function createLevel01(gameState: Entity, settings: Settings): ArxMap {
 
   // -------------------------
 
+  /*
   const npcDistribution = [
     { value: EntityTypes.Ylside, weight: 20 },
     { value: EntityTypes.Carrot, weight: 20 },
@@ -173,28 +164,44 @@ export function createLevel01(gameState: Entity, settings: Settings): ArxMap {
   })
 
   map.entities.push(boss)
+  */
 
   // -------------------------
 
-  gameState.script?.on('goto_level01', () => {
-    return `
+  gameState.script
+    ?.on('goto_level1', () => {
+      return `
+sendevent setsize player 50
 set §tmp ^rnd_${spawns.length}
 
 ${spawns
   .map((spawn, index) => {
     return `
 if (§tmp == ${index}) {
-  ${sfxPlayerAppears4SoundScript.play()}
   teleport -p ${spawn.ref}
 }
 `
   })
   .join('\n')}
+// TODO: reset entities
 `
-  })
+    })
+    .on('goto_level1', () => {
+      const { delay } = useDelay()
+      if (settings.mode === 'production') {
+        return `
+worldfade in 2000
+${sfxPlayerAppears4SoundScript.play()}
+${PlayerControls.on} ${delay(100)} ${PlayerControls.off} ${delay(1500)} ${PlayerControls.on}
+`
+      } else {
+        return ''
+      }
+    })
 
   // -------------------------
 
+  /*
   const rootStar = createRootStar()
   map.entities.push(rootStar)
 
@@ -279,6 +286,7 @@ if (§tmp == ${index}) {
       map.entities.push(star)
     }
   }
+  */
 
   // -------------------------
 

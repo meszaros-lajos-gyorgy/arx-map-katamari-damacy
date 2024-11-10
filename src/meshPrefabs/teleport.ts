@@ -3,7 +3,7 @@ import { Box3 } from 'three'
 
 let cache: Polygons | undefined = undefined
 
-export async function createTeleport(settings: Settings) {
+export async function createTeleport(settings: Settings): Promise<Polygons> {
   if (cache === undefined) {
     const city = await ArxMap.fromOriginalLevel(11, settings)
 

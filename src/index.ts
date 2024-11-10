@@ -1,9 +1,10 @@
 import { ArxMap, Settings, Vector3 } from 'arx-level-generator'
-import { useDelay } from 'arx-level-generator/scripting/hooks'
 import { createRootEntities } from './entities/entity.js'
 import { createGameState } from './entities/gameState.js'
 import { enhancePlayer } from './entities/player.js'
-import { createLevel01 } from './places/levels/01/level01.js'
+import { createRootSnakeTeleportDoor } from './entities/snakeTeleportDoor.js'
+import { createLevel1 } from './places/levels/1/level1.js'
+import { createLobby } from './places/lobby/lobby.js'
 
 // import { createMeasurementRoom } from './places/measurementRoom/measurementRoom.js'
 
@@ -26,18 +27,26 @@ enhancePlayer(map.player, gameState)
 
 map.entities.push(...createRootEntities())
 
+const rootTeleport = createRootSnakeTeleportDoor()
+map.entities.push(rootTeleport)
+
 // -----------------------
 
-const level01 = createLevel01(gameState, settings)
-level01.move(new Vector3(8000, 0, 8000))
-map.add(level01, true)
+const lobby = await createLobby(gameState, settings)
+lobby.move(new Vector3(0, 1000, 0))
+map.add(lobby, true)
 
-// const measurementRoom = createMeasurementRoom()
+const level1 = await createLevel1(gameState, settings)
+level1.move(new Vector3(8000, 0, 8000))
+map.add(level1, true)
+
+// const measurementRoom = await createMeasurementRoom()
 // map.add(measurementRoom, true)
 
 gameState.script?.on('init', () => {
-  const { delay } = useDelay()
-  return `${delay(300)} sendevent goto_level01 self nop`
+  return `
+sendevent goto_lobby self nop
+`
 })
 
 // -----------------------
