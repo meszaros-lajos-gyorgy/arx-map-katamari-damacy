@@ -52,4 +52,4 @@ sendevent goto_lobby self nop
 // -----------------------
 
 map.finalize(settings)
-map.saveToDisk(settings)
+map.saveToDisk(settings, true, true)

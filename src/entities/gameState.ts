@@ -36,8 +36,8 @@ herosay ${varHudLine4.name}
       return `
 // setmainevent and the main event in general doesn't seem to be working for markers
 // https://wiki.arx-libertatis.org/Script:setmainevent
-${redraw.invoke()}
-${loop(1000)} ${redraw.invoke()}
+// ${redraw.invoke()}
+// ${loop(1000)} ${redraw.invoke()}
       `
     })
     .on('player_resized', () => {
