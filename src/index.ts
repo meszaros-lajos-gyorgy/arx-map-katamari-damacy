@@ -37,7 +37,7 @@ lobby.move(new Vector3(0, 1000, 0))
 map.add(lobby, true)
 
 const level1 = await createLevel1(gameState, settings)
-level1.move(new Vector3(8000, 0, 8000))
+level1.move(new Vector3(4000, 0, 8000))
 map.add(level1, true)
 
 // const measurementRoom = await createMeasurementRoom()

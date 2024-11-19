@@ -1,3 +1,4 @@
+import { ArxLightFlags } from 'arx-convert/types'
 import {
   Ambience,
   ArxMap,
@@ -17,6 +18,7 @@ import { PlayerControls, Variable } from 'arx-level-generator/scripting/properti
 import { createLight, createZone } from 'arx-level-generator/tools'
 import { pickRandom, pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils, Vector2 } from 'three'
+import { eveningSky } from '@/colors.js'
 import { createEntity, EntityTypes } from '@/entities/entity.js'
 import { createRootStar, createStar } from '@/entities/star.js'
 import { sfxPlayerAppears4SoundScript } from '@/sounds.js'
@@ -30,14 +32,15 @@ import {
   stoneHumanCityGround3,
   stoneHumanCityGround4,
 } from '@/textures.js'
-import { createCityWest } from '../../../meshPrefabs/cityWest.js'
+import { createEveningCity } from '../../../meshPrefabs/eveninigCity.js'
 
 export async function createLevel1(gameState: Entity, settings: Settings): Promise<ArxMap> {
   const map = new ArxMap()
 
-  // const cityWest = await createCityWest(settings)
-  // map.add(cityWest)
+  const eveninigCity = await createEveningCity(settings)
+  map.add(eveninigCity)
 
+  /*
   map.polygons.addThreeJsMesh(
     createPlaneMesh({
       size: 4000,
@@ -49,7 +52,6 @@ export async function createLevel1(gameState: Entity, settings: Settings): Promi
     },
   )
 
-  /*
   const tiles = pickWeightedRandoms(map.polygons.length, [
     { value: soilHumanSoil1, weight: 30 },
     { value: soilHumanStandard1, weight: 10 },
@@ -73,13 +75,7 @@ export async function createLevel1(gameState: Entity, settings: Settings): Promi
       })
     }
   })
-  */
 
-  // -------------------------
-
-  const eveningSky = Color.fromCSS('#582402')
-
-  /*
   const lightColor = eveningSky.clone().lighten(40)
 
   for (let x = 0; x < 8; x++) {
@@ -103,7 +99,7 @@ export async function createLevel1(gameState: Entity, settings: Settings): Promi
     name: 'level1_spawn1',
     size: new Vector3(100, 100, 100),
     backgroundColor: eveningSky,
-    ambience: Ambience.rebelsCool,
+    ambience: settings.mode === 'production' ? Ambience.rebelsCool : Ambience.none,
     drawDistance: 7000,
   })
   map.zones.push(spawnZone1)
@@ -183,7 +179,7 @@ export async function createLevel1(gameState: Entity, settings: Settings): Promi
   const rootStar = createRootStar()
   map.entities.push(rootStar)
 
-  const sunAt = new Vector3(1500, 70, 3000)
+  const sunAt = new Vector3(-300, -400, -3000)
 
   const platformUnderTheSun = createPlaneMesh({
     size: 100,
@@ -197,114 +193,9 @@ export async function createLevel1(gameState: Entity, settings: Settings): Promi
   const sun = createStar({
     size: 200,
     position: sunAt,
-    orientation: new Rotation(0, MathUtils.degToRad(-90), 0),
+    orientation: new Rotation(0, MathUtils.degToRad(90), 0),
   })
   map.entities.push(sun)
-
-  const anchorA = Entity.marker.withScript().at({
-    position: new Vector3(-2000, 0, 2000).adjustToPlayerHeight(),
-  })
-  anchorA.script?.on('init', () => {
-    const { loop } = useDelay()
-    return `${loop(50)} sendevent dist_player_a ${sun.ref} "~^&playerdist~"`
-  })
-
-  const anchorB = Entity.marker.withScript().at({
-    position: new Vector3(2000, 0, 2000).adjustToPlayerHeight(),
-  })
-  anchorB.script?.on('init', () => {
-    const { loop } = useDelay()
-    return `${loop(50)} sendevent dist_player_b ${sun.ref} "~^&playerdist~"`
-  })
-
-  const anchorC = Entity.marker.withScript().at({
-    position: new Vector3(-2000, 0, -2000).adjustToPlayerHeight(),
-  })
-  anchorC.script?.on('init', () => {
-    const { loop } = useDelay()
-    return `${loop(50)} sendevent dist_player_c ${sun.ref} "~^&playerdist~"`
-  })
-
-  map.entities.push(anchorA, anchorB, anchorC)
-
-  const varDistPlayerA = new Variable('float', 'dist_player_a', -1)
-  const varDistPlayerB = new Variable('float', 'dist_player_b', -1)
-  const varDistPlayerC = new Variable('float', 'dist_player_c', -1)
-  const varPrevX = new Variable('float', 'prev_x', -1)
-  const varPrevZ = new Variable('float', 'prev_z', -1)
-  const varX = new Variable('float', 'x', -1)
-  const varZ = new Variable('float', 'z', -1)
-  const varTmp = new Variable('float', 'tmp', 0, true)
-  const varAdjustPos = new Variable('bool', 'adjust_pos', false)
-  sun.script?.properties.push(
-    varDistPlayerA,
-    varDistPlayerB,
-    varDistPlayerC,
-    varPrevX,
-    varPrevZ,
-    varX,
-    varZ,
-    varTmp,
-    varAdjustPos,
-  )
-
-  // min(z): 0
-  // max(z): 4472.135955
-  // 4472.135955 / 4000 = 1.118033989 (sqrt(1.25) or golden ratio - 0.5)
-  // see https://friesian.com/golden.htm
-
-  const measurePosition = new ScriptSubroutine('measure_position', () => {
-    return `
-if (${varAdjustPos.name} == 0) {
-  accept
-}
-
-set ${varX.name} ${varDistPlayerA.name}
-inc ${varX.name} ${varDistPlayerC.name}
-dec ${varX.name} 4000
-div ${varX.name} 1.118
-
-set ${varZ.name} ${varDistPlayerA.name}
-inc ${varZ.name} ${varDistPlayerB.name}
-dec ${varZ.name} 4000
-div ${varZ.name} 1.118
-
-if (${varPrevX.name} != -1) {
-  dec ${varPrevX.name} ${varX.name}
-  mul ${varPrevX.name} -1
-  move ~${varPrevX.name}~ 0 0
-}
-set ${varPrevX.name} ${varX.name}
-
-if (${varPrevZ.name} != -1) {
-  dec ${varPrevZ.name} ${varZ.name}
-  move 0 0 ~${varPrevZ.name}~
-}
-set ${varPrevZ.name} ${varZ.name}
-`
-  })
-  sun.script?.subroutines.push(measurePosition)
-
-  sun.script
-    ?.on('dist_player_a', () => {
-      return `set ${varDistPlayerA.name} ^&param1`
-    })
-    .on('dist_player_b', () => {
-      return `set ${varDistPlayerB.name} ^&param1`
-    })
-    .on('dist_player_c', () => {
-      return `set ${varDistPlayerC.name} ^&param1`
-    })
-    .on('init', () => {
-      const { loop } = useDelay()
-      return `${loop(100)} ${measurePosition.invoke()}`
-    })
-    .on('start_adjusting', () => {
-      return `set ${varAdjustPos.name} 1`
-    })
-    .on('stop_adjusting', () => {
-      return `set ${varAdjustPos.name} 0`
-    })
 
   /*
   // -------------------------
@@ -381,8 +272,6 @@ set ${varPrevZ.name} ${varZ.name}
 sendevent setsize player 50
 set §tmp ^rnd_${spawns.length}
 
-${delay(1000, false)} sendevent start_adjusting ${sun.ref} nop
-
 ${spawns
   .map((spawn, index) => {
     return `
@@ -406,11 +295,6 @@ ${PlayerControls.on} ${delay(100)} ${PlayerControls.off} ${delay(1500)} ${Player
       } else {
         return ''
       }
-    })
-    .on('victory', () => {
-      return `
-sendevent stop_adjusting ${sun.ref} nop
-`
     })
 
   // -------------------------
