@@ -64,14 +64,14 @@ export async function createEveningCity(settings: Settings): Promise<ArxMap> {
           case 24:
           case 29: {
             varType.value = 'door_city_unbreak'
-            entity.script?.on('load', () => `use_mesh "door_city\\door_city.teo"`)
+            entity.script?.on('load', () => `use_mesh "door_city/door_city.teo"`)
             break
           }
 
           // 94 - priest's quarters' door in church
           case 94: {
             varType.value = 'door_city_unbreak'
-            entity.script?.on('load', () => `use_mesh "Door_Human_Palace_light\\Door_Human_Palace_light.teo"`)
+            entity.script?.on('load', () => `use_mesh "Door_Human_Palace_light/Door_Human_Palace_light.teo"`)
             break
           }
 
@@ -80,26 +80,26 @@ export async function createEveningCity(settings: Settings): Promise<ArxMap> {
           case 93:
           case 95: {
             varType.value = 'door_city_unbreak'
-            entity.script?.on('load', () => `use_mesh "Door_church02\\Door_church02.teo"`)
+            entity.script?.on('load', () => `use_mesh "Door_church02/Door_church02.teo"`)
             break
           }
           // 96 - church double door
           case 96: {
             varType.value = 'door_metal_double'
-            entity.script?.on('load', () => `use_mesh "Door_Church_double_door\\Door_Church_double_door.teo"`)
+            entity.script?.on('load', () => `use_mesh "Door_Church_double_door/Door_Church_double_door.teo"`)
             break
           }
           // 99 - enoil's home
           case 99: {
             varType.value = 'door_city_unbreak'
-            entity.script?.on('load', () => `use_mesh "door_city\\door_city.teo"`)
+            entity.script?.on('load', () => `use_mesh "door_city/door_city.teo"`)
             break
           }
 
           // 104 - gary's apartment
           case 104: {
             varType.value = 'door_city_unbreak'
-            entity.script?.on('load', () => `use_mesh "door_castle\\door_castle.teo"`)
+            entity.script?.on('load', () => `use_mesh "door_castle/door_castle.teo"`)
             break
           }
           // 28 - miguel's smithy
@@ -111,7 +111,7 @@ export async function createEveningCity(settings: Settings): Promise<ArxMap> {
           case 103:
           case 105: {
             varType.value = 'door_fullmetal'
-            entity.script?.on('load', () => `use_mesh "Door_Human_Palace_metal\\Door_Human_Palace_metal.teo"`)
+            entity.script?.on('load', () => `use_mesh "Door_Human_Palace_metal/Door_Human_Palace_metal.teo"`)
             break
           }
           // 106 - city entrance
@@ -119,7 +119,7 @@ export async function createEveningCity(settings: Settings): Promise<ArxMap> {
           case 106:
           case 118: {
             varType.value = 'door_metal_double'
-            entity.script?.on('load', () => `use_mesh "Door_Castle_double_door\\Door_Castle_double_door.teo"`)
+            entity.script?.on('load', () => `use_mesh "Door_Castle_double_door/Door_Castle_double_door.teo"`)
             break
           }
           // 98 - door to sewer escape house
