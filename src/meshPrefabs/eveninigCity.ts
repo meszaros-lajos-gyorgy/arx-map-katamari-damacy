@@ -1,6 +1,7 @@
 import { ArxLightFlags } from 'arx-convert/types'
 import { $, ArxMap, Settings, Vector3 } from 'arx-level-generator'
 import { Variable } from 'arx-level-generator/scripting/properties'
+import { Box3 } from 'three'
 import { eveningSky } from '@/colors.js'
 
 export async function createEveningCity(settings: Settings): Promise<ArxMap> {
@@ -12,7 +13,10 @@ export async function createEveningCity(settings: Settings): Promise<ArxMap> {
 
   map.polygons = $(city.polygons).selectAll().moveToRoom1().move(offset).get()
 
-  map.lights = $(city.lights)
+  const lightBBox = new Box3()
+  const lightPositions: Vector3[] = []
+
+  $(city.lights)
     .selectAll()
     .move(city.config.offset)
     .move(offset)
@@ -21,7 +25,31 @@ export async function createEveningCity(settings: Settings): Promise<ArxMap> {
     })
     .apply((light) => {
       light.color = eveningSky
-      // TODO: make lights dimmer based on their position
+      lightBBox.expandByPoint(light.position)
+      lightPositions.push(light.position)
+    })
+
+  let focus = lightBBox.max
+  let [min] = lightPositions.splice(0, 1)
+  let minDistance = min.distanceTo(focus)
+  let max = min
+  let maxDistance = minDistance
+  lightPositions.forEach((lightPos) => {
+    let distance = lightPos.distanceTo(focus)
+    if (distance < minDistance) {
+      min = lightPos
+      minDistance = distance
+    } else if (distance > maxDistance) {
+      max = lightPos
+      maxDistance = distance
+    }
+  })
+  const diff = maxDistance - minDistance
+
+  map.lights = $(city.lights)
+    .apply((light) => {
+      const scaling = light.position.distanceTo(min) / diff
+      light.intensity *= scaling
     })
     .get()
 

@@ -179,7 +179,7 @@ export async function createLevel1(gameState: Entity, settings: Settings): Promi
   const rootStar = createRootStar()
   map.entities.push(rootStar)
 
-  const sunAt = new Vector3(-300, -400, -3000)
+  const sunAt = new Vector3(-300, -600, -3000)
 
   const platformUnderTheSun = createPlaneMesh({
     size: 100,
