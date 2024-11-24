@@ -43,7 +43,7 @@ export async function createLobby(gameState: Entity, settings: Settings): Promis
     MathUtils.degToRad(180),
   )
 
-  teleportDoorLocations.forEach((position, i) => {
+  teleportDoorLocations.slice(0, 1).forEach((position, i) => {
     const teleportDoor = createSnakeTeleportDoor({
       position,
       orientation: new Rotation(0, MathUtils.degToRad(-90 - i * (360 / teleportDoorLocations.length)), 0),
