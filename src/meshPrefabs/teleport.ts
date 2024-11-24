@@ -3,7 +3,7 @@ import { Box3 } from 'three'
 
 let cache: Polygons | undefined = undefined
 
-export async function createTeleport(settings: Settings): Promise<Polygons> {
+export async function createTeleport(settings: Settings, numberOfPortals: number): Promise<Polygons> {
   if (cache === undefined) {
     const city = await ArxMap.fromOriginalLevel(11, settings)
 
@@ -16,33 +16,25 @@ export async function createTeleport(settings: Settings): Promise<Polygons> {
 
     selection.clearSelection().selectByTextures(['[stone]_human_stone_ornament']).delete()
 
-    const polygons = selection
-      .selectAll()
-      .apply((polygon, idx) => {
-        if (idx === 695) {
-          polygon.vertices[0].z += 25
-          polygon.vertices[0].uv.y = 0
+    selection
+      .clearSelection()
+      .selectBy(({ texture }) => {
+        if (texture === undefined) {
+          return true
         }
 
-        if (idx === 44) {
-          polygon.vertices[1].z -= 50
-          polygon.vertices[1].uv.y = 1
-        }
-
-        return polygon
+        return texture.filename.startsWith('[soil]_') || texture.filename.startsWith('[stone]_')
       })
-      .get()
+      .delete()
 
-    const topLeftPolygon = polygons[695].clone()
-    topLeftPolygon.move(new Vector3(0, 0, 100))
-
-    const bottomLeftPolygon = polygons[44].clone()
-    bottomLeftPolygon.move(new Vector3(0, 0, -100))
-
-    polygons.push(topLeftPolygon, bottomLeftPolygon)
-
-    cache = polygons
+    cache = selection.selectAll().get()
   }
 
   return $(cache).selectAll().copy().get()
 }
+
+/*
+floor inner:      l5_snake_[stone]_tele1
+floor outer ring: l5_snake_[marble]_wall06, ...wall07, ...wall08, ...wall09
+floor rim:        l5_snake_[marble]_wall11
+*/

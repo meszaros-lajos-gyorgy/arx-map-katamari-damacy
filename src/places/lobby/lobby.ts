@@ -1,44 +1,79 @@
-import { Ambience, ArxMap, Color, Entity, Rotation, Settings, Vector3 } from 'arx-level-generator'
+import { $, Ambience, ArxMap, Color, Entity, Rotation, Settings, Vector3 } from 'arx-level-generator'
+import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
-import { PlayerControls } from 'arx-level-generator/scripting/properties'
+import { Label, PlayerControls } from 'arx-level-generator/scripting/properties'
 import { createLight, createZone } from 'arx-level-generator/tools'
+import { circleOfVectors } from 'arx-level-generator/utils'
+import { MathUtils, Vector2 } from 'three'
 import { createSnakeTeleportDoor } from '@/entities/snakeTeleportDoor.js'
+import { altitudeFromSide, sideFromAltitude } from '@/helpers/isosceles.js'
 import { createTeleport } from '@/meshPrefabs/teleport.js'
 import { snakeTeleportSoundScript } from '@/sounds.js'
+
+const defaultNumberOfPortals = 8
+// measured this for 8 portals
+const defaultPortalDistanceFromCenter = 230.3
+
+const widthOfAPortal = sideFromAltitude(
+  defaultPortalDistanceFromCenter,
+  MathUtils.degToRad(360 / defaultNumberOfPortals),
+)
 
 export async function createLobby(gameState: Entity, settings: Settings): Promise<ArxMap> {
   const map = new ArxMap()
 
-  const teleport = await createTeleport(settings)
-  map.polygons.push(...teleport)
+  const numberOfPortals = 10
+  const teleportPosition = new Vector3(0, 0, 1000)
 
-  const teleportToLevel1 = createSnakeTeleportDoor({
-    position: new Vector3(230, 0, 0),
-    orientation: new Rotation(0, 0, 0),
+  // const teleport = await createTeleport(settings, numberOfPortals)
+  // $(teleport).selectAll().move(teleportPosition)
+  // map.polygons.push(...teleport)
+
+  const floor = createPlaneMesh({
+    size: new Vector2(1000, 1600),
   })
+  floor.position.add(teleportPosition.clone().divideScalar(1.5))
+  map.polygons.addThreeJsMesh(floor)
 
-  teleportToLevel1.script
-    ?.on('init', () => {
-      return `
-setname [teleport_to_level1]
-tweak skin fix_inter_shot_0 fix_inter_shot_11
-`
+  const portalDistanceFromCenter = altitudeFromSide(widthOfAPortal, MathUtils.degToRad(360 / numberOfPortals))
+  const teleportDoorLocations = circleOfVectors(
+    teleportPosition,
+    portalDistanceFromCenter,
+    numberOfPortals,
+    MathUtils.degToRad(180),
+  )
+
+  teleportDoorLocations.forEach((position, i) => {
+    const teleportDoor = createSnakeTeleportDoor({
+      position,
+      orientation: new Rotation(0, MathUtils.degToRad(-90 - i * (360 / teleportDoorLocations.length)), 0),
     })
-    .on('action', () => {
-      const { delay } = useDelay()
-      if (settings.mode === 'production') {
-        return `
+
+    teleportDoor.script?.properties.push(new Label(`[teleport_to_level${i}]`))
+
+    teleportDoor.script
+      ?.on('init', () => {
+        // TODO: set different images based on the value of i
+        // TODO: set custom images
+        return `tweak skin fix_inter_shot_0 fix_inter_shot_11`
+      })
+      .on('action', () => {
+        const { delay } = useDelay()
+        if (settings.mode === 'production') {
+          return `
 ${PlayerControls.off}
 worldfade out 2500 ${Color.white.toScriptColor()}
-${snakeTeleportSoundScript.play()} ${delay(2500)} sendevent goto_level1 ${gameState.ref} nop
+${snakeTeleportSoundScript.play()} ${delay(2500)} sendevent goto_level${i} ${gameState.ref} nop
 `
-      } else {
-        return `
-sendevent goto_level1 ${gameState.ref} nop
+        } else {
+          return `
+sendevent goto_level${i} ${gameState.ref} nop
 `
-      }
-    })
-  map.entities.push(teleportToLevel1)
+        }
+      })
+
+    map.entities.push(teleportDoor)
+  })
 
   // ---------------------
 
@@ -66,8 +101,9 @@ ${PlayerControls.on}
   // ---------------------
 
   const light = createLight({
-    position: new Vector3(200, -500, 200),
-    radius: 800,
+    position: new Vector3(200, -500, 200).add(teleportPosition),
+    radius: 1000,
+    intensity: 2,
   })
   map.lights.push(light)
 

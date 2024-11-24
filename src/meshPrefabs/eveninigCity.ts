@@ -16,6 +16,8 @@ export async function createEveningCity(settings: Settings): Promise<ArxMap> {
   const lightBBox = new Box3()
   const lightPositions: Vector3[] = []
 
+  // // csak a debug miatt adjuk vissza
+  // map.lights =
   $(city.lights)
     .selectAll()
     .move(city.config.offset)
@@ -23,6 +25,12 @@ export async function createEveningCity(settings: Settings): Promise<ArxMap> {
     .selectBy((light) => {
       return (light.flags & ArxLightFlags.Extinguishable) === 0
     })
+    // // ------------debug
+    // .copy()
+    // .get()
+
+    // console.log(map.lights.length)
+    // -----------------
     .apply((light) => {
       light.color = eveningSky
       lightBBox.expandByPoint(light.position)

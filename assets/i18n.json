@@ -2,7 +2,7 @@
   "victory": {
     "english": "You've won!"
   },
-  "teleport_to_level1": {
-    "english": "Play a round in the west half of the city of Arx"
+  "teleport_to_level0": {
+    "english": "City of Arx in the evening"
   }
 }

@@ -37,8 +37,8 @@ import { createEveningCity } from '../../../meshPrefabs/eveninigCity.js'
 export async function createLevel1(gameState: Entity, settings: Settings): Promise<ArxMap> {
   const map = new ArxMap()
 
-  const eveninigCity = await createEveningCity(settings)
-  map.add(eveninigCity)
+  // const eveninigCity = await createEveningCity(settings)
+  // map.add(eveninigCity)
 
   /*
   map.polygons.addThreeJsMesh(
