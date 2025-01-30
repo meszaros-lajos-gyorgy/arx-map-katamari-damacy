@@ -23,3 +23,11 @@ export const cheeseModel = new EntityModel({
   filename: 'cheese.ftl',
   sourcePath: 'models',
 })
+
+/**
+ * copied over from game/graph/obj3d/interactive/npc/human_base/human_base.ftl
+ */
+export const humanBaseModel = new EntityModel({
+  filename: 'human_base.ftl',
+  sourcePath: 'models',
+})

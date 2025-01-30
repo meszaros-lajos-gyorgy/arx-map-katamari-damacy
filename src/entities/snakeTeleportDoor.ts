@@ -1,6 +1,5 @@
-import { Color, Entity, Rotation, Vector3 } from 'arx-level-generator'
-import { Collision, Material, PlayerControls, Shadow } from 'arx-level-generator/scripting/properties'
-import { snakeTeleportSoundScript } from '@/sounds.js'
+import { Entity, Rotation, Vector3 } from 'arx-level-generator'
+import { Collision, Material, Shadow } from 'arx-level-generator/scripting/properties'
 
 export function createRootSnakeTeleportDoor() {
   const entity = new Entity({

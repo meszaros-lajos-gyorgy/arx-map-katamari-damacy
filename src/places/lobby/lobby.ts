@@ -1,4 +1,4 @@
-import { $, Ambience, ArxMap, Color, Entity, Rotation, Settings, Vector3 } from 'arx-level-generator'
+import { $, Ambience, ArxMap, Color, Entity, QUADIFY, Rotation, ISettings, Vector3 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
 import { Label, PlayerControls } from 'arx-level-generator/scripting/properties'
@@ -19,21 +19,29 @@ const widthOfAPortal = sideFromAltitude(
   MathUtils.degToRad(360 / defaultNumberOfPortals),
 )
 
-export async function createLobby(gameState: Entity, settings: Settings): Promise<ArxMap> {
+export async function createLobby(gameState: Entity, settings: ISettings): Promise<ArxMap> {
   const map = new ArxMap()
 
-  const numberOfPortals = 10
-  const teleportPosition = new Vector3(0, 0, 1000)
-
-  // const teleport = await createTeleport(settings, numberOfPortals)
-  // $(teleport).selectAll().move(teleportPosition)
-  // map.polygons.push(...teleport)
+  const numberOfPortals = 8
+  const teleportPosition = new Vector3(0, -1, 500)
 
   const floor = createPlaneMesh({
     size: new Vector2(1000, 1600),
+    tileSize: 35,
   })
   floor.position.add(teleportPosition.clone().divideScalar(1.5))
-  map.polygons.addThreeJsMesh(floor)
+  map.polygons.addThreeJsMesh(floor, { tryToQuadify: QUADIFY })
+  $(map.polygons)
+    .selectBy((polygon) => {
+      return polygon.vertices.some((vertex) => {
+        return vertex.distanceTo(teleportPosition) < 250
+      })
+    })
+    .delete()
+
+  const teleport = await createTeleport(settings, numberOfPortals)
+  $(teleport).selectAll().move(teleportPosition)
+  map.polygons.push(...teleport)
 
   const portalDistanceFromCenter = altitudeFromSide(widthOfAPortal, MathUtils.degToRad(360 / numberOfPortals))
   const teleportDoorLocations = circleOfVectors(
@@ -63,11 +71,11 @@ export async function createLobby(gameState: Entity, settings: Settings): Promis
           return `
 ${PlayerControls.off}
 worldfade out 2500 ${Color.white.toScriptColor()}
-${snakeTeleportSoundScript.play()} ${delay(2500)} sendevent goto_level${i} ${gameState.ref} nop
+${snakeTeleportSoundScript.play()} ${delay(2500)} sendevent goto_level${i + 1} ${gameState.ref} nop
 `
         } else {
           return `
-sendevent goto_level${i} ${gameState.ref} nop
+sendevent goto_level${i + 1} ${gameState.ref} nop
 `
         }
       })

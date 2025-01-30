@@ -11,7 +11,7 @@ import {
 } from 'arx-level-generator/scripting/properties'
 import { randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils } from 'three'
-import { carrotModel, cheeseModel, leekModel } from '@/models.js'
+import { carrotModel, cheeseModel, humanBaseModel, leekModel } from '@/models.js'
 import {
   eatSoundScript,
   hasteStartSoundScript,
@@ -248,16 +248,24 @@ const varBaseHeight = new Variable('int', 'base_height', 0, true) // model heigh
 const varScaleFactor = new Variable('float', 'scale_factor', 0, true) // value to be passed to setscale command (percentage)
 const varTmp = new Variable('float', 'tmp', 0, true) // helper for calculations
 const varStartedSpeakingAt = new Variable('int', 'started_speaking_at', 0, true) // (seconds)
+const varIsUsingAltSkin = new Variable('bool', 'is_using_alt_skin', false)
 
 const varResetBehaviorCounter = new Variable('int', 'reset_behavior_counter', 0, true)
 const varIsBumping = new Variable('bool', 'is_bumping', false)
 
-export function createRootEntities(): Entity[] {
+export function createRootEntities({ gameState }: { gameState: Entity }): Entity[] {
   return Object.values(EntityTypes).map((type) => {
     const entityDefinition = entityDefinitions[type]
 
     const entity = new Entity({
       src: `npc/entity/${type}`,
+      ...(type === EntityTypes.Ylside
+        ? {
+            tweaks: {
+              'npc/human_base/tweaks/human_base.ftl': humanBaseModel,
+            },
+          }
+        : {}),
     })
 
     if (entityDefinition.mesh instanceof EntityModel) {
@@ -316,6 +324,7 @@ if (${varResetBehaviorCounter.name} == 2) {
       varScaleFactor,
       varTmp,
       varStartedSpeakingAt,
+      varIsUsingAltSkin,
       varResetBehaviorCounter,
       varIsBumping,
     )
@@ -441,6 +450,29 @@ if (${varIsConsumable.name} == 1) {
         settarget player
 
         if (${varAlmostConsumable.name} == 1) {
+          if (${varIsUsingAltSkin.name} == 0) {
+            set ${varIsUsingAltSkin.name} 1
+
+            ${
+              type === EntityTypes.Ylside
+                ? `
+              tweak lower "human_base"
+              tweak skin "NPC_HUMAN_HERO_NAKED_BODY" "NPC_HUMAN_BASE_NAKED_BODY"
+              sendevent consumed_special ${gameState.ref} "ylside_armor"
+              play -op eat
+            `
+                : ``
+            }
+            ${
+              type === EntityTypes.Goblin
+                ? `
+              tweak head "goblin_nohelm"
+              sendevent consumed_special ${gameState.ref} "goblin_helmet"
+              play -op eat
+            `
+                : ``
+            }
+          }
           ${delay(delays?.start?.sounds?.bumpAlmostConsumed ?? 0, false)} ${sounds.bumpAlmostConsumed ?? sounds.bumpFarFromConsumed ?? ''} ${delay(delays?.end?.sounds?.bumpAlmostConsumed ?? 0, false)} ${resetBehavior.invoke()}
           ${delay(delays?.start?.animations?.bumpAlmostConsumed ?? 0, false)} ${animations.bumpAlmostConsumed ? `playanim hit` : ''} ${delay(delays?.end?.animations?.bumpAlmostConsumed ?? 0, false)} ${resetBehavior.invoke()}
         } else {

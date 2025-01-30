@@ -36,8 +36,8 @@ herosay ${varHudLine4.name}
       return `
 // setmainevent and the main event in general doesn't seem to be working for markers
 // https://wiki.arx-libertatis.org/Script:setmainevent
-// ${redraw.invoke()}
-// ${loop(1000)} ${redraw.invoke()}
+${redraw.invoke()}
+${loop(1000)} ${redraw.invoke()}
       `
     })
     .on('player_resized', () => {
@@ -131,6 +131,18 @@ set ${varHudLine4.name} " "
     .on('goto_level1', () => {
       return `
 set ${varIsPlayerInLobby.name} 0
+`
+    })
+    .on('consumed_special', () => {
+      return `
+if (^$param1 == "ylside_armor") {
+  set ${varHudLine2.name} "last consumed: the armor of an ylside"
+  ${redraw.invoke()}
+}
+if (^$param1 == "goblin_helmet") {
+  set ${varHudLine2.name} "last consumed: the helmet of a goblin"
+  ${redraw.invoke()}
+}
 `
     })
 

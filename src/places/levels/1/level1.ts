@@ -1,20 +1,17 @@
-import { ArxLightFlags } from 'arx-convert/types'
 import {
   Ambience,
   ArxMap,
-  Color,
   Entity,
   QUADIFY,
   Rotation,
-  Settings,
+  ISettings,
   SHADING_SMOOTH,
   Texture,
   Vector3,
 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
-import { ScriptSubroutine } from 'arx-level-generator/scripting'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
-import { PlayerControls, Variable } from 'arx-level-generator/scripting/properties'
+import { PlayerControls } from 'arx-level-generator/scripting/properties'
 import { createLight, createZone } from 'arx-level-generator/tools'
 import { pickRandom, pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
 import { MathUtils, Vector2 } from 'three'
@@ -32,15 +29,10 @@ import {
   stoneHumanCityGround3,
   stoneHumanCityGround4,
 } from '@/textures.js'
-import { createEveningCity } from '../../../meshPrefabs/eveninigCity.js'
 
-export async function createLevel1(gameState: Entity, settings: Settings): Promise<ArxMap> {
+export async function createLevel1(gameState: Entity, settings: ISettings): Promise<ArxMap> {
   const map = new ArxMap()
 
-  // const eveninigCity = await createEveningCity(settings)
-  // map.add(eveninigCity)
-
-  /*
   map.polygons.addThreeJsMesh(
     createPlaneMesh({
       size: 4000,
@@ -91,7 +83,6 @@ export async function createLevel1(gameState: Entity, settings: Settings): Promi
       )
     }
   }
-  */
 
   // -------------------------
 
@@ -113,7 +104,17 @@ export async function createLevel1(gameState: Entity, settings: Settings): Promi
 
   // -------------------------
 
-  /*
+  function createRandomPosition(exclusionsAt: Vector3[]) {
+    const position = new Vector3(0, 0, 0)
+
+    do {
+      position.x = randomBetween(-1800, 1800)
+      position.z = randomBetween(-1800, 1800)
+    } while (position.distanceTo(exclusionsAt[0]) <= 150)
+
+    return position
+  }
+
   const npcDistribution = [
     { value: EntityTypes.Ylside, weight: 20 },
     { value: EntityTypes.Carrot, weight: 20 },
@@ -172,7 +173,6 @@ export async function createLevel1(gameState: Entity, settings: Settings): Promi
   })
 
   map.entities.push(boss)
-  */
 
   // -------------------------
 
@@ -197,77 +197,10 @@ export async function createLevel1(gameState: Entity, settings: Settings): Promi
   })
   map.entities.push(sun)
 
-  /*
-  // -------------------------
-
-  if (settings.mode === 'production') {
-    for (let i = 0; i < 250; i++) {
-      const starAt = new Vector3(randomBetween(-4000, 4000), randomBetween(1000, -3500), randomBetween(-2800, -4000))
-      const size = randomBetween(1, 2 + -starAt.z / 1000)
-
-      const platformUnderTheStar = createPlaneMesh({
-        size: 10,
-        texture: Texture.alpha,
-      })
-      platformUnderTheStar.position.x = starAt.x
-      platformUnderTheStar.position.y = starAt.y + 1000
-      platformUnderTheStar.position.z = starAt.z
-      map.polygons.addThreeJsMesh(platformUnderTheStar, { tryToQuadify: QUADIFY })
-
-      const star = createStar({
-        size,
-        position: starAt,
-      })
-      map.entities.push(star)
-    }
-
-    for (let i = 0; i < 100; i++) {
-      const starAt = new Vector3(randomBetween(-2800, -4000), randomBetween(1000, -3500), randomBetween(-5000, 2000))
-      const size = 2 + -(starAt.z - 2000) / 1000
-
-      const platformUnderTheStar = createPlaneMesh({
-        size: 10,
-        texture: Texture.alpha,
-      })
-      platformUnderTheStar.position.x = starAt.x
-      platformUnderTheStar.position.y = starAt.y + 1000
-      platformUnderTheStar.position.z = starAt.z
-      map.polygons.addThreeJsMesh(platformUnderTheStar, { tryToQuadify: QUADIFY })
-
-      const star = createStar({
-        size,
-        position: starAt,
-      })
-      map.entities.push(star)
-    }
-
-    for (let i = 0; i < 100; i++) {
-      const starAt = new Vector3(randomBetween(2800, 4000), randomBetween(1000, -3000), randomBetween(-4000, 0))
-      const size = 1 + -starAt.z / 1000
-
-      const platformUnderTheStar = createPlaneMesh({
-        size: 10,
-        texture: Texture.alpha,
-      })
-      platformUnderTheStar.position.x = starAt.x
-      platformUnderTheStar.position.y = starAt.y + 1000
-      platformUnderTheStar.position.z = starAt.z
-      map.polygons.addThreeJsMesh(platformUnderTheStar, { tryToQuadify: QUADIFY })
-
-      const star = createStar({
-        size,
-        position: starAt,
-      })
-      map.entities.push(star)
-    }
-  }
-  */
-
   // -------------------------
 
   gameState.script
     ?.on('goto_level1', () => {
-      const { delay } = useDelay()
       return `
 sendevent setsize player 50
 set §tmp ^rnd_${spawns.length}
