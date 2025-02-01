@@ -10,13 +10,15 @@ import {
   Vector3,
 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
+import { ScriptSubroutine } from 'arx-level-generator/scripting'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
 import { PlayerControls } from 'arx-level-generator/scripting/properties'
 import { createLight, createZone } from 'arx-level-generator/tools'
-import { pickRandom, pickWeightedRandoms, randomBetween } from 'arx-level-generator/utils/random'
+import { pickRandom, pickWeightedRandoms } from 'arx-level-generator/utils/random'
 import { MathUtils, Vector2 } from 'three'
 import { eveningSky } from '@/colors.js'
-import { createEntity, EntityTypes } from '@/entities/entity.js'
+import { EntityTypes } from '@/entities/entity.js'
+import { createEntitySpawner, EntitySpawnProps } from '@/entities/entitySpawner.js'
 import { createRootStar, createStar } from '@/entities/star.js'
 import { sfxPlayerAppears4SoundScript } from '@/sounds.js'
 import {
@@ -99,82 +101,33 @@ export async function createLevel1(gameState: Entity, settings: ISettings): Prom
   const spawn1 = Entity.marker
   map.entities.push(spawn1)
 
-  const spawns: Entity[] = [spawn1]
-  const spawnPoints = spawns.map(({ position }) => position)
+  const playerSpawnPoints: Entity[] = [spawn1]
 
   // -------------------------
 
-  function createRandomPosition(exclusionsAt: Vector3[]) {
-    const position = new Vector3(0, 0, 0)
-
-    do {
-      position.x = randomBetween(-1800, 1800)
-      position.z = randomBetween(-1800, 1800)
-    } while (position.distanceTo(exclusionsAt[0]) <= 150)
-
-    return position
-  }
-
-  const npcDistribution = [
-    { value: EntityTypes.Ylside, weight: 20 },
-    { value: EntityTypes.Carrot, weight: 20 },
-    { value: EntityTypes.Leek, weight: 20 },
-    { value: EntityTypes.GoblinLord, weight: 30 },
-    { value: EntityTypes.Goblin, weight: 60 },
-    { value: EntityTypes.Cheese, weight: 10 },
+  const entitySpawns: EntitySpawnProps[] = [
+    {
+      position: new Vector3(-1000, 0, 0),
+      entity: EntityTypes.Carrot,
+      size: new Vector2(20, 50),
+    },
+    {
+      position: new Vector3(-1000, 0, 200),
+      entity: EntityTypes.Carrot,
+      size: new Vector2(20, 50),
+    },
+    {
+      position: new Vector3(-1000, 0, 400),
+      entity: EntityTypes.Carrot,
+      size: new Vector2(20, 50),
+    },
   ]
 
-  const smalls = pickWeightedRandoms(100, npcDistribution)
-  const mediums = pickWeightedRandoms(50, npcDistribution)
-  const larges = pickWeightedRandoms(30, npcDistribution)
-  const extraLarges = pickWeightedRandoms(7, npcDistribution)
-
-  map.entities.push(
-    ...smalls.map(({ value }) => {
-      return createEntity({
-        position: createRandomPosition(spawnPoints),
-        size: randomBetween(20, 50),
-        type: value,
-      })
-    }),
-    ...mediums.map(({ value }) => {
-      return createEntity({
-        position: createRandomPosition(spawnPoints),
-        size: randomBetween(40, 125),
-        type: value,
-      })
-    }),
-    ...larges.map(({ value }) => {
-      return createEntity({
-        position: createRandomPosition(spawnPoints),
-        size: randomBetween(100, 250),
-        type: value,
-      })
-    }),
-    ...extraLarges.map(({ value }) => {
-      return createEntity({
-        position: createRandomPosition(spawnPoints),
-        size: randomBetween(200, 300),
-        type: value,
-      })
-    }),
-  )
-
-  // -------------------------
-
-  const boss = createEntity({
-    position: createRandomPosition(spawnPoints),
-    size: 300,
-    type: EntityTypes.GoblinKing,
+  const entitySpawners = entitySpawns.map((entitySpawnProps) => {
+    return createEntitySpawner(entitySpawnProps)
   })
 
-  boss.script?.on('consumed', () => {
-    return `sendevent victory ${gameState.ref} nop`
-  })
-
-  map.entities.push(boss)
-
-  // -------------------------
+  map.entities.push(...entitySpawners)
 
   const rootStar = createRootStar()
   map.entities.push(rootStar)
@@ -199,36 +152,66 @@ export async function createLevel1(gameState: Entity, settings: ISettings): Prom
 
   // -------------------------
 
-  gameState.script
-    ?.on('goto_level1', () => {
-      return `
-sendevent setsize player 50
-set §tmp ^rnd_${spawns.length}
+  gameState.script?.on('goto_level1', () => {
+    return `sendevent setsize player 50`
+  })
 
-${spawns
-  .map((spawn, index) => {
+  // randomly place the player on the map
+  gameState.script?.on('goto_level1', () => {
     return `
-if (§tmp == ${index}) {
-  teleport -p ${spawn.ref}
-}
-`
+set §tmp ^rnd_${playerSpawnPoints.length}
+
+${playerSpawnPoints
+  .map((spawn, index) => {
+    return `if (§tmp == ${index}) { teleport -p ${spawn.ref} }`
   })
   .join('\n')}
-// TODO: reset entities
 `
-    })
-    .on('goto_level1', () => {
+  })
+
+  gameState.script?.on('goto_level1', () => {
+    return `
+${entitySpawners
+  .map((spawner) => {
+    return `sendevent spawn_entity ${spawner.ref} nop`
+  })
+  .join('\n')}
+`
+  })
+
+  if (settings.mode === 'production') {
+    gameState.script?.on('goto_level1', () => {
       const { delay } = useDelay()
-      if (settings.mode === 'production') {
-        return `
+      return `
 worldfade in 2000
 ${sfxPlayerAppears4SoundScript.play()}
 ${PlayerControls.on} ${delay(100)} ${PlayerControls.off} ${delay(1500)} ${PlayerControls.on}
-`
-      } else {
-        return ''
-      }
+  `
     })
+  }
+
+  const tmp = new ScriptSubroutine(
+    'victory_cleanup_level1',
+    () => {
+      return `
+${entitySpawners
+  .map((spawner) => {
+    return `sendevent remove_entity ${spawner.ref} nop`
+  })
+  .join('\n')}
+`
+    },
+    'goto',
+  )
+
+  gameState.script?.subroutines.push(tmp)
+
+  gameState.script?.on('victory', () => {
+    const { delay } = useDelay()
+    return `
+${delay(5500)} ${tmp.invoke()}
+`
+  })
 
   // -------------------------
 

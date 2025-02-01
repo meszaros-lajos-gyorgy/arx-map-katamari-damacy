@@ -331,6 +331,13 @@ if (${varResetBehaviorCounter.name} == 2) {
 
     entity.script
       ?.on('init', () => {
+        let orientation: Rotation
+        if (entityDefinition.orientation !== undefined) {
+          orientation = entityDefinition.orientation
+        } else {
+          orientation = new Rotation(0, MathUtils.degToRad(randomBetween(0, 360)), 0)
+        }
+
         return `
 setgroup consumables
 behavior none
@@ -343,6 +350,14 @@ set_speak_pitch ${varTmp.name}
 
 physical radius 25
 physical height 200
+
+rotate ${orientation.toArxData().a} ${orientation.toArxData().b} ${orientation.toArxData().g}
+`
+      })
+      .on('set_size', () => {
+        return `
+set ${varSize.name} ^&param1
+${resize.invoke()}
 `
       })
       .on('initend', () => {

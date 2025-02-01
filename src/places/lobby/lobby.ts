@@ -6,23 +6,15 @@ import { createLight, createZone } from 'arx-level-generator/tools'
 import { circleOfVectors } from 'arx-level-generator/utils'
 import { MathUtils, Vector2 } from 'three'
 import { createSnakeTeleportDoor } from '@/entities/snakeTeleportDoor.js'
-import { altitudeFromSide, sideFromAltitude } from '@/helpers/isosceles.js'
 import { createTeleport } from '@/meshPrefabs/teleport.js'
 import { snakeTeleportSoundScript } from '@/sounds.js'
 
-const defaultNumberOfPortals = 8
-// measured this for 8 portals
-const defaultPortalDistanceFromCenter = 230.3
-
-const widthOfAPortal = sideFromAltitude(
-  defaultPortalDistanceFromCenter,
-  MathUtils.degToRad(360 / defaultNumberOfPortals),
-)
+const numberOfPortals = 8
+const portalDistanceFromCenter = 230.3
 
 export async function createLobby(gameState: Entity, settings: ISettings): Promise<ArxMap> {
   const map = new ArxMap()
 
-  const numberOfPortals = 8
   const teleportPosition = new Vector3(0, -1, 500)
 
   const floor = createPlaneMesh({
@@ -43,7 +35,6 @@ export async function createLobby(gameState: Entity, settings: ISettings): Promi
   $(teleport).selectAll().move(teleportPosition)
   map.polygons.push(...teleport)
 
-  const portalDistanceFromCenter = altitudeFromSide(widthOfAPortal, MathUtils.degToRad(360 / numberOfPortals))
   const teleportDoorLocations = circleOfVectors(
     teleportPosition,
     portalDistanceFromCenter,

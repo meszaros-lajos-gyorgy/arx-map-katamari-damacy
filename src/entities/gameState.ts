@@ -120,12 +120,13 @@ ${delay(5000)} sendevent goto_lobby ${gameState.ref} nop
     })
     .on('goto_lobby', () => {
       return `
-set ${varIsPlayerInLobby.name} 1
-
 set ${varHudLine1.name} " "
 set ${varHudLine2.name} " "
 set ${varHudLine3.name} " "
 set ${varHudLine4.name} " "
+${redraw.invoke()}
+
+set ${varIsPlayerInLobby.name} 1
 `
     })
     .on('goto_level1', () => {
