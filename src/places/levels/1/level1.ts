@@ -17,7 +17,6 @@ import { createLight, createZone } from 'arx-level-generator/tools'
 import { pickRandom, pickWeightedRandoms } from 'arx-level-generator/utils/random'
 import { MathUtils, Vector2 } from 'three'
 import { eveningSky } from '@/colors.js'
-import { EntityTypes } from '@/entities/entity.js'
 import { createEntitySpawner, EntitySpawnProps } from '@/entities/entitySpawner.js'
 import { createRootStar, createStar } from '@/entities/star.js'
 import { sfxPlayerAppears4SoundScript } from '@/sounds.js'
@@ -31,6 +30,8 @@ import {
   stoneHumanCityGround3,
   stoneHumanCityGround4,
 } from '@/textures.js'
+import { NonEmptyArray } from '@/types.js'
+import { createVeggieGardenSpawns } from './veggieGarden.js'
 
 export async function createLevel1(gameState: Entity, settings: ISettings): Promise<ArxMap> {
   const map = new ArxMap()
@@ -88,40 +89,33 @@ export async function createLevel1(gameState: Entity, settings: ISettings): Prom
 
   // -------------------------
 
-  const spawnZone1 = createZone({
-    name: 'level1_spawn1',
-    size: new Vector3(100, 100, 100),
-    backgroundColor: eveningSky,
-    ambience: settings.mode === 'production' ? Ambience.rebelsCool : Ambience.none,
-    drawDistance: 7000,
+  const playerSpawnLocations: NonEmptyArray<Vector3> = [
+    new Vector3(0, 0, 0),
+    new Vector3(-1200, 0, 400),
+    new Vector3(1000, 0, 600),
+  ]
+  const playerSpawnPoints: Entity[] = []
+
+  playerSpawnLocations.forEach((spawnPlayerAt, index) => {
+    const playerSpawnZone = createZone({
+      position: spawnPlayerAt,
+      name: `level1_spawn${index + 1}`,
+      size: new Vector3(100, 100, 100),
+      backgroundColor: eveningSky,
+      ambience: settings.mode === 'production' ? Ambience.rebelsCool : Ambience.none,
+      drawDistance: 7000,
+    })
+    map.zones.push(playerSpawnZone)
+
+    const playerSpawnPoint = Entity.marker.at({ position: spawnPlayerAt })
+    map.entities.push(playerSpawnPoint)
+
+    playerSpawnPoints.push(playerSpawnPoint)
   })
-  map.zones.push(spawnZone1)
-
-  // TODO: add more spawns
-  const spawn1 = Entity.marker
-  map.entities.push(spawn1)
-
-  const playerSpawnPoints: Entity[] = [spawn1]
 
   // -------------------------
 
-  const entitySpawns: EntitySpawnProps[] = [
-    {
-      position: new Vector3(-1000, 0, 0),
-      entity: EntityTypes.Carrot,
-      size: new Vector2(20, 50),
-    },
-    {
-      position: new Vector3(-1000, 0, 200),
-      entity: EntityTypes.Carrot,
-      size: new Vector2(20, 50),
-    },
-    {
-      position: new Vector3(-1000, 0, 400),
-      entity: EntityTypes.Carrot,
-      size: new Vector2(20, 50),
-    },
-  ]
+  const entitySpawns: EntitySpawnProps[] = [...createVeggieGardenSpawns()]
 
   const entitySpawners = entitySpawns.map((entitySpawnProps) => {
     return createEntitySpawner(entitySpawnProps)

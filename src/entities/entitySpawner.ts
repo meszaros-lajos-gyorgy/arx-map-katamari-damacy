@@ -2,14 +2,15 @@ import { Entity, Vector3 } from 'arx-level-generator'
 import { Variable } from 'arx-level-generator/scripting/properties'
 import { Vector2 } from 'three'
 import { EntityTypes } from '@/entities/entity.js'
+import { NonEmptyArray } from '@/types.js'
 
 export type EntitySpawnProps = {
   position: Vector3
-  entity: EntityTypes
+  entities: NonEmptyArray<EntityTypes>
   size: number | Vector2
 }
 
-export function createEntitySpawner({ position, entity, size }: EntitySpawnProps): Entity {
+export function createEntitySpawner({ position, entities, size }: EntitySpawnProps): Entity {
   const spawner = Entity.marker.withScript().at({
     position,
   })
@@ -21,7 +22,14 @@ export function createEntitySpawner({ position, entity, size }: EntitySpawnProps
   spawner.script
     ?.on('spawn_entity', () => {
       return `
-spawn npc entity/${entity}/${entity}.teo self
+set §type ^rnd_${entities.length}
+
+${entities
+  .map((entity, index) => {
+    return `if (§type == ${index}) spawn npc entity/${entity}/${entity}.teo self`
+  })
+  .join('\n')}
+
 set ${varIdOfSpawnedEntity.name} ^last_spawned
 ${
   typeof size === 'number'

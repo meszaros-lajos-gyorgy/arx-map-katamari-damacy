@@ -342,6 +342,8 @@ if (${varResetBehaviorCounter.name} == 2) {
 setgroup consumables
 behavior none
 settarget none
+// make sure the entity doesn't show up as a red dot on the minimap
+setdetect -1
 
 set ${varTmp.name} ^rnd_40
 div ${varTmp.name} 100
