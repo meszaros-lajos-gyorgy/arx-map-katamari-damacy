@@ -193,6 +193,8 @@ ${entitySpawners
     return `sendevent remove_entity ${spawner.ref} nop`
   })
   .join('\n')}
+
+sendevent reset ${sun.ref} nop
 `
     },
     'goto',
