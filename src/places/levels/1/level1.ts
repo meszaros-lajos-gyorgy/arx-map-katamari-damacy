@@ -17,6 +17,7 @@ import { createLight, createZone } from 'arx-level-generator/tools'
 import { pickRandom, pickWeightedRandoms } from 'arx-level-generator/utils/random'
 import { MathUtils, Vector2 } from 'three'
 import { eveningSky } from '@/colors.js'
+import { EntityTypes } from '@/entities/entity.js'
 import { createEntitySpawner, EntitySpawnProps } from '@/entities/entitySpawner.js'
 import { createRootStar, createStar } from '@/entities/star.js'
 import { sfxPlayerAppears4SoundScript } from '@/sounds.js'
@@ -115,7 +116,41 @@ export async function createLevel1(gameState: Entity, settings: ISettings): Prom
 
   // -------------------------
 
-  const entitySpawns: EntitySpawnProps[] = [...createVeggieGardenSpawns()]
+  const entitySpawns: EntitySpawnProps[] = [
+    ...createVeggieGardenSpawns(),
+
+    { entities: [EntityTypes.Ylside], position: new Vector3(0, 0, 200), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(0, 0, 300), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(0, 0, 400), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(0, 0, 500), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(0, 0, 600), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(0, 0, 700), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(0, 0, 800), size: new Vector2(70, 100) },
+
+    { entities: [EntityTypes.Ylside], position: new Vector3(-250, 0, 200), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-250, 0, 300), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-250, 0, 400), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-250, 0, 500), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-250, 0, 600), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-250, 0, 700), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-250, 0, 800), size: new Vector2(70, 100) },
+
+    { entities: [EntityTypes.Ylside], position: new Vector3(-500, 0, 200), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-500, 0, 300), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-500, 0, 400), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-500, 0, 500), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-500, 0, 600), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-500, 0, 700), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-500, 0, 800), size: new Vector2(70, 100) },
+
+    { entities: [EntityTypes.Ylside], position: new Vector3(-750, 0, 200), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-750, 0, 300), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-750, 0, 400), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-750, 0, 500), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-750, 0, 600), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-750, 0, 700), size: new Vector2(70, 100) },
+    { entities: [EntityTypes.Ylside], position: new Vector3(-750, 0, 800), size: new Vector2(70, 100) },
+  ]
 
   const entitySpawners = entitySpawns.map((entitySpawnProps) => {
     return createEntitySpawner(entitySpawnProps)
