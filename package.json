@@ -28,7 +28,7 @@
   "homepage": "https://github.com/meszaros-lajos-gyorgy/arx-map-katamari-damacy#readme",
   "dependencies": {
     "arx-convert": "10.3.2",
-    "arx-level-generator": "^21.0.0-alpha.41",
+    "arx-level-generator": "^21.0.0-alpha.42",
     "three": "0.171.0"
   },
   "devDependencies": {

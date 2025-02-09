@@ -1,4 +1,4 @@
-import { $, Ambience, ArxMap, Color, Entity, QUADIFY, Rotation, ISettings, Vector3 } from 'arx-level-generator'
+import { $, Ambience, ArxMap, Color, Entity, QUADIFY, Rotation, type Settings, Vector3 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
 import { Label, PlayerControls } from 'arx-level-generator/scripting/properties'
@@ -12,7 +12,7 @@ import { snakeTeleportSoundScript } from '@/sounds.js'
 const numberOfPortals = 8
 const portalDistanceFromCenter = 230.3
 
-export async function createLobby(gameState: Entity, settings: ISettings): Promise<ArxMap> {
+export async function createLobby(gameState: Entity, settings: Settings): Promise<ArxMap> {
   const map = new ArxMap()
 
   const teleportPosition = new Vector3(0, -1, 500)

@@ -1,9 +1,9 @@
-import { $, ArxMap, Polygons, ISettings, Vector3 } from 'arx-level-generator'
+import { $, ArxMap, Polygons, type Settings, Vector3 } from 'arx-level-generator'
 import { Box3 } from 'three'
 
 let cache: Polygons | undefined = undefined
 
-export async function createTeleport(settings: ISettings, numberOfPortals: number): Promise<Polygons> {
+export async function createTeleport(settings: Settings, numberOfPortals: number): Promise<Polygons> {
   if (cache === undefined) {
     const city = await ArxMap.fromOriginalLevel(11, settings)
 

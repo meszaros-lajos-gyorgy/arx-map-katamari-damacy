@@ -4,7 +4,7 @@ import {
   Entity,
   QUADIFY,
   Rotation,
-  ISettings,
+  type Settings,
   SHADING_SMOOTH,
   Texture,
   Vector3,
@@ -34,7 +34,7 @@ import {
 import { NonEmptyArray } from '@/types.js'
 import { createVeggieGardenSpawns } from './veggieGarden.js'
 
-export async function createLevel1(gameState: Entity, settings: ISettings): Promise<ArxMap> {
+export async function createLevel1(gameState: Entity, settings: Settings): Promise<ArxMap> {
   const map = new ArxMap()
 
   map.polygons.addThreeJsMesh(
