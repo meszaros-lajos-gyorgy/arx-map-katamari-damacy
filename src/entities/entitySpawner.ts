@@ -1,13 +1,12 @@
 import { Entity, Vector3 } from 'arx-level-generator'
 import { Variable } from 'arx-level-generator/scripting/properties'
-import { Vector2 } from 'three'
 import { EntityTypes } from '@/entities/entity.js'
 import { NonEmptyArray } from '@/types.js'
 
 export type EntitySpawnProps = {
   position: Vector3
   entities: NonEmptyArray<EntityTypes>
-  size: number | Vector2
+  size: number | [min: number, max: number]
 }
 
 export function createEntitySpawner({ position, entities, size }: EntitySpawnProps): Entity {
@@ -37,8 +36,8 @@ ${
 sendevent set_size ^last_spawned ${size}
 `
     : `
-set §min ${size.x}
-set §max ${size.y}
+set §min ${size[0]}
+set §max ${size[1]}
 set §diff §max
 dec §diff §min
 set §size ^rnd_~§diff~

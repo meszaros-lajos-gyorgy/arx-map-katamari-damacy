@@ -1,6 +1,5 @@
 import { Vector3 } from 'arx-level-generator'
 import { randomBetween } from 'arx-level-generator/utils/random'
-import { Vector2 } from 'three'
 import { EntityTypes } from '@/entities/entity.js'
 import { EntitySpawnProps } from '@/entities/entitySpawner.js'
 
@@ -12,7 +11,7 @@ export function createVeggieGardenSpawns(): EntitySpawnProps[] {
       entitySpawns.push({
         position: new Vector3(1200 + i * 80 + randomBetween(-20, 20), 0, 1000 + j * 100 + randomBetween(-10, 10)),
         entities: [EntityTypes.Carrot, EntityTypes.Leek],
-        size: new Vector2(30, 50),
+        size: [30, 50],
       })
     }
   }

@@ -3,6 +3,7 @@ import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
 import { Label, PlayerControls } from 'arx-level-generator/scripting/properties'
 import { createLight, createZone } from 'arx-level-generator/tools'
+import { makeBumpy } from 'arx-level-generator/tools/mesh'
 import { circleOfVectors } from 'arx-level-generator/utils'
 import { MathUtils, Vector2 } from 'three'
 import { createSnakeTeleportDoor } from '@/entities/snakeTeleportDoor.js'
@@ -21,6 +22,7 @@ export async function createLobby(gameState: Entity, settings: Settings): Promis
     size: new Vector2(1000, 1600),
     tileSize: 35,
   })
+
   floor.position.add(teleportPosition.clone().divideScalar(1.5))
   map.polygons.addThreeJsMesh(floor, { tryToQuadify: QUADIFY })
   $(map.polygons)
