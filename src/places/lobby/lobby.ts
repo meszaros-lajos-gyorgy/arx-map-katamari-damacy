@@ -1,4 +1,15 @@
-import { $, Ambience, ArxMap, Color, Entity, QUADIFY, Rotation, type Settings, Vector3 } from 'arx-level-generator'
+import {
+  $,
+  Ambience,
+  ArxMap,
+  Color,
+  Entity,
+  QUADIFY,
+  Rotation,
+  type Settings,
+  Texture,
+  Vector3,
+} from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
 import { Label, PlayerControls } from 'arx-level-generator/scripting/properties'
@@ -21,6 +32,10 @@ export async function createLobby(gameState: Entity, settings: Settings): Promis
   const floor = createPlaneMesh({
     size: new Vector2(1600, 2500),
     tileSize: 35,
+    texture: new Texture({
+      filename: 'L1_DRAGON_[ICE]_ICEGROUND02.jpg',
+      height: 128,
+    }),
   })
 
   makeBumpy([0, 10], 75, true, floor.geometry)
@@ -30,7 +45,7 @@ export async function createLobby(gameState: Entity, settings: Settings): Promis
   $(map.polygons)
     .selectBy((polygon) => {
       return polygon.vertices.some((vertex) => {
-        return vertex.distanceTo(teleportPosition) < 240
+        return vertex.distanceTo(teleportPosition) < 230
       })
     })
     .delete()
@@ -104,8 +119,8 @@ ${PlayerControls.on}
   // ---------------------
 
   const light = createLight({
-    position: new Vector3(200, -500, 200).add(teleportPosition),
-    radius: 1000,
+    position: teleportPosition.clone().add(new Vector3(0, -300, 0)),
+    radius: 600,
     intensity: 2,
   })
   map.lights.push(light)
