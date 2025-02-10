@@ -1,5 +1,6 @@
 import { Entity, Rotation, Vector3 } from 'arx-level-generator'
-import { Collision, Material, Shadow } from 'arx-level-generator/scripting/properties'
+import { ScriptSubroutine } from 'arx-level-generator/scripting'
+import { Collision, Material, Shadow, Variable } from 'arx-level-generator/scripting/properties'
 
 export function createRootSnakeTeleportDoor() {
   const entity = new Entity({
@@ -8,20 +9,56 @@ export function createRootSnakeTeleportDoor() {
   entity.withScript()
   entity.script?.makeIntoRoot()
 
-  entity.script?.properties.push(Collision.off, Material.water, Shadow.off)
+  const varScale = new Variable('int', 'scale', 0)
+
+  entity.script?.properties.push(Collision.off, Material.water, Shadow.off, varScale)
+
+  const scale = new ScriptSubroutine(
+    'scale',
+    () => {
+      return `
+inc ${varScale.name} 1
+setscale ${varScale.name}
+`
+    },
+    'goto',
+  )
+
+  const appear = new ScriptSubroutine(
+    'appear',
+    () => {
+      return `
+object_hide self no
+TIMERscale -m 100 1 ${scale.invoke()}
+TIMERcheck off
+`
+    },
+    'goto',
+  )
+
+  const check = new ScriptSubroutine(
+    'check',
+    () => {
+      return `${appear.invoke()}`
+    },
+    'goto',
+  )
+
+  entity.script?.subroutines.push(scale, appear, check)
 
   entity.script
     ?.on('init', () => {
       return `
 loadanim action1 "snake_teleport_door_wait"
+object_hide self yes
+setscale ${varScale.name}
 `
     })
     .on('initend', () => {
       return `
-// SETNAME [description_snaketeleporter_~§leading_to~]
 // TWEAK SKIN fix_inter_shot_0 fix_inter_shot_~§leading_to~
-PLAYANIM -L ACTION1
-// TIMERcheck -i 0 1 GOTO CHECK
+playanim -l action1
+TIMERcheck -im 0 1000 ${check.invoke()}
 `
     })
 

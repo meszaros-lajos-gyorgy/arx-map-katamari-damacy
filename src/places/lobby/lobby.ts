@@ -16,19 +16,21 @@ const portalDistanceFromCenter = 230.3
 export async function createLobby(gameState: Entity, settings: Settings): Promise<ArxMap> {
   const map = new ArxMap()
 
-  const teleportPosition = new Vector3(0, -1, 500)
+  const teleportPosition = new Vector3(0, -1, 1000)
 
   const floor = createPlaneMesh({
-    size: new Vector2(1000, 1600),
+    size: new Vector2(1600, 2500),
     tileSize: 35,
   })
+
+  makeBumpy([0, 10], 75, true, floor.geometry)
 
   floor.position.add(teleportPosition.clone().divideScalar(1.5))
   map.polygons.addThreeJsMesh(floor, { tryToQuadify: QUADIFY })
   $(map.polygons)
     .selectBy((polygon) => {
       return polygon.vertices.some((vertex) => {
-        return vertex.distanceTo(teleportPosition) < 250
+        return vertex.distanceTo(teleportPosition) < 240
       })
     })
     .delete()
@@ -87,7 +89,7 @@ sendevent goto_level${i + 1} ${gameState.ref} nop
   })
   map.zones.push(spawnZoneLobby)
 
-  const spawnLobby = Entity.marker
+  const spawnLobby = Entity.marker.at({ position: new Vector3(0, 0, -250) })
   map.entities.push(spawnLobby)
 
   gameState.script?.on('goto_lobby', () => {
